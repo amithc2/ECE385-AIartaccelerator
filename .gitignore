@@ -35,3 +35,6 @@
 *.jpg 
 *.png 
 *.jpeg
+#vgg16 download files
+vgg16/ 
+__pycache__/ 
