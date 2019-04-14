@@ -1,4 +1,5 @@
 #include <stdio.h>
+// currently everything is a fixed width, I'm hoping the vgg16 function pads for us
 static int h, w, d;
 // mean squared error funciton, which is our loss function
 //
@@ -23,12 +24,35 @@ double mean_squared_error(double a_tensor [h][w][d], double b_tensor [h][w][d], 
   return reduced_sum / elements;
 }
 
-// double[h][w][d] gram_matrix(double tensor [h][w][d]){
+//code to flatten 3D tensor to 2D
+// double[][d] flatten_to2D(double tensor [h][w][d]){
 //
 // }
-// double create_content_loss(VGG16 model, double content_image [][][4],   int* layer_indexes ){
 //
+// double[][d] gram_matrix(double tensor [h][w][d]){
+//   double tensor_reduced[][d] = flatten_to2D(tensor);
+//   double gram[][d] = {0};
+//   int i, j;
+//   for(i = 0; i < w; i++){
+//     for(j = 0; j < d; j++){
+//       gram[i][j] = tensor_reduced[i][j]*tensor_reduced[j][i];
+//     }
+//   }
+//   return gram;
 // }
+
+//the VGG16 model HAS to correspond to the look up table info for the content image
+double create_content_loss(VGG16 model, double content_image [h][w][d], int* layer_indexes){
+  // gets tensors from vgg16 net this is essentially the filters that will be applied to the content image
+  //layers = model.get_layer_tensors();
+  // gets value outputs from filter tensor * image tensor 
+
+  double layer_losses[
+}
+// general thoughts on text file conversion: theres only two images so all we need to do is
+// return layer values for those two images and we have done all the work we need to do
+// essentially just run python in command line to update text files
+// then run C code on NIOS II
 int main(){
   h = 2;
   w = 2;
