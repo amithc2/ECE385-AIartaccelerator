@@ -5,6 +5,28 @@ import numpy as np
 import PIL.Image
 import vgg16
 
+#this stuff is how you print to a text file with slices along the height dimension of a 3D tensor
+# Generate some test data
+# data = np.arange(200).reshape((4,5,10))
+#
+# # Write the array to disk
+# with open('test.txt', 'w') as outfile:
+#     # I'm writing a header here just for the sake of readability
+#     # Any line starting with "#" will be ignored by numpy.loadtxt
+#     outfile.write('# Array shape: {0}\n'.format(data.shape))
+#
+#     # Iterating through a ndimensional array produces slices along
+#     # the last axis. This is equivalent to data[i,:,:] in this case
+#     for data_slice in data:
+#
+#         # The formatting string indicates that I'm writing out
+#         # the values in left-justified columns 7 characters in width
+#         # with 2 decimal places.
+#         np.savetxt(outfile, data_slice, fmt='%-7.2f')
+#
+#         # Writing out a break to indicate different slices...
+#         outfile.write('# New slice\n')
+
 # this just returns a numpy array that represents the image from the filename path specified
 def load_image(filename, max_size=None):
     image = PIL.Image.open(filename)
