@@ -38,3 +38,5 @@
 #vgg16 download files
 vgg16/ 
 __pycache__/ 
+#text files 
+*.txt
