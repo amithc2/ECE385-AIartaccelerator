@@ -59,11 +59,11 @@ for layer, value in zip(layers, values):
                 # The formatting string indicates that I'm writing out
                 # the values in left-justified columns 7 characters in width
                 # with 2 decimal places.
-                outfile.write('# Dimension index: ' + np.str(j) + '\n')
+                #outfile.write('# Dimension index: ' + np.str(j) + '\n')
                 np.savetxt(outfile, data_meme_slice, fmt='%-15.7f')
 
                 # Writing out a break to indicate different slices...
-                outfile.write('\n')
+                #outfile.write('\n')
                 j+=1
 for layer, value in zip(layers, values):
     data = value
@@ -82,11 +82,11 @@ for layer, value in zip(layers, values):
                 # The formatting string indicates that I'm writing out
                 # the values in left-justified columns 7 characters in width
                 # with 2 decimal places.
-                outfile.write('# Dimension index: ' + np.str(j) + '\n')
+                #outfile.write('# Dimension index: ' + np.str(j) + '\n')
                 np.savetxt(outfile, data_meme_slice, fmt='%-15.7f')
 
                 # Writing out a break to indicate different slices...
-                outfile.write('\n')
+               # outfile.write('\n')
                 j+=1
             k+=1
 # for style stuff
@@ -109,11 +109,11 @@ for layer, value in zip(layers, values):
                 # The formatting string indicates that I'm writing out
                 # the values in left-justified columns 7 characters in width
                 # with 2 decimal places.
-                outfile.write('# Dimension index: ' + np.str(j) + '\n')
+               # outfile.write('# Dimension index: ' + np.str(j) + '\n')
                 np.savetxt(outfile, data_meme_slice, fmt='%-15.7f')
 
                 # Writing out a break to indicate different slices...
-                outfile.write('\n')
+                #outfile.write('\n')
                 j+=1
 for layer, value in zip(layers, values):
     data = value
@@ -132,11 +132,11 @@ for layer, value in zip(layers, values):
                 # The formatting string indicates that I'm writing out
                 # the values in left-justified columns 7 characters in width
                 # with 2 decimal places.
-                outfile.write('# Dimension index: ' + np.str(j) + '\n')
+                #outfile.write('# Dimension index: ' + np.str(j) + '\n')
                 np.savetxt(outfile, data_meme_slice, fmt='%-15.7f')
 
                 # Writing out a break to indicate different slices...
-                outfile.write('\n')
+                #outfile.write('\n')
                 j+=1
             k+=1
     #np.savetxt('text.txt',tensor, delimiter = ',')
