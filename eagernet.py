@@ -42,7 +42,6 @@ session = tf.InteractiveSession(graph = test.graph)
 layers = test.get_layer_tensors(content_layer_ids)
 feed_dict = test.create_feed_dict(image = content_image)
 values = session.run(layers, feed_dict = feed_dict)
-i = 0
 for layer, value in zip(layers, values):
     tensor = session.run(layer, feed_dict = feed_dict)
     data = tensor
@@ -66,7 +65,6 @@ for layer, value in zip(layers, values):
                 # Writing out a break to indicate different slices...
                 outfile.write('\n')
                 j+=1
-    i+=1
 for layer, value in zip(layers, values):
     data = value
     with open('content.txt', 'a') as outfile:
@@ -79,7 +77,7 @@ for layer, value in zip(layers, values):
         k = 0
         for data_slice in data:
             j = 0
-            outfile.write('# New Content Value Tensor'+ np.str(k) + '\n')
+            outfile.write('# New Content Value Tensor '+ np.str(k) + '\n')
             for data_meme_slice in data_slice:
                 # The formatting string indicates that I'm writing out
                 # the values in left-justified columns 7 characters in width
@@ -141,7 +139,6 @@ for layer, value in zip(layers, values):
                 outfile.write('\n')
                 j+=1
             k+=1
-print(i)
     #np.savetxt('text.txt',tensor, delimiter = ',')
 session.close()
 # img = style_transfer(content_image=content_image,
