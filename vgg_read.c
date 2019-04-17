@@ -145,6 +145,45 @@ float* createGramMatrix(float* tensor, int h, int w, int d){
 	return result;
 }
 
+float createStyleLoss(struct vgg16* layers){
+
+	float lossVal = 0;
+	float totalLoss = 0;
+
+	// instantiate gramLayers
+	float* gramLayers[sizeof(layers)/sizeof(struct vgg16)];
+
+	// instantiate layerLosses array
+	float layerLosses[sizeof(layers)/sizeof(struct vgg16)];
+
+	// find gramLayers
+	int i;
+	for(i = 0; i < sizeof(layers)/sizeof(struct vgg16); i++){
+		gramLayers[i] = createGramMatrix(layers[i].layer_tensor, layers[i].h, layers[i].w, layers[i].d);
+	}
+
+
+	// calculate style loss
+
+	for(i = 0; i < sizeof(layers)/sizeof(struct vgg16); i++){
+		lossVal = meanSquaredError(gramLayers[i],(layers[i]).value_tensor, layers[i].h, layers[i].w, layers[i].d);
+		layerLosses[i] = lossVal;
+	}
+
+
+	// reduceMean of layerLosses array
+	float sum = 0;
+	int numElements = 0;
+	for(i = 0; i < sizeof(layerLosses); i++){
+		sum += layerLosses[i];
+		numElements++;
+	}
+
+	totalLoss = sum / numElements;
+	return totalLoss;
+
+}
+
 int main(){
 	struct vgg16* styles = makeLayers("stylelayer.txt", "stylevalue.txt", 13);
 	struct vgg16* content = makeLayers("contentlayer.txt", "contentlayer.txt", 1);
