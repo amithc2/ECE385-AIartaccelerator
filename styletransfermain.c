@@ -1,8 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
-
 // Structure to hold the content tensor and value tensor 
 typedef struct vgg16{
 	float* contentTensor;
@@ -14,29 +12,29 @@ typedef struct vgg16{
 
 
 // Flatten tensors from 3d to 1d 
-float* flatten(float*** tensor, int height, int width, int depth){
+//float* flatten(float[][][] tensor, int height, int width, int depth){
 
 	// dynamically allocate memory for flattenedArray
-	float* flattenedArray;
-	flattenedArray = malloc(sizeof(tensor));
+//	float* flattenedArray;
+//	flattenedArray = malloc(sizeof(tensor));
 
 	// index 3d array to 1d array with following method
 	// Flat[x + WIDTH * (y + DEPTH * z)] = Original[x, y, z]
-	int i = 0;
-	int j = 0;
-	int k = 0;
-	int flatIdx;
-	for(i = 0; i < height; i++){
-		for(j = 0; j < width; j++){
-			for(k = 0; k < depth; k++){
-				flatIdx = i + width * (j + depth * k);
-				flattenedArray[flatIdx] = tensor[i][j][k];
-			}
-		}
-	}
+//	int i = 0;
+//	int j = 0;
+//	int k = 0;
+//	int flatIdx;
+//	for(i = 0; i < height; i++){
+//		for(j = 0; j < width; j++){
+//			for(k = 0; k < depth; k++){
+//				flatIdx = i + width * (j + depth * k);
+//				flattenedArray[flatIdx] = tensor[i][j][k];
+//			}
+//		}
+//	}
 
-	return flattenedArray;
-}
+//	return flattenedArray;
+//}
 
 
 
@@ -106,6 +104,6 @@ int main(){
 	arr[1][1][1] = 1.2;
 
 	float* flatBoi;
-	//flatBoi = flatten(arr, 2, 2, 2);
+	flatBoi = flatten(arr, 2, 2, 2);
 	free(flatBoi);
 }
