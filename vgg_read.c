@@ -9,14 +9,15 @@ struct vgg16{
 	float style_tensor1[1][75][75][256];
 	float style_tensor2[1][75][75][256];
 };
-static int notUsed, h, w, d;
+
 static float style_tensor1[1][19][19][512];
 static float style_tensor2[1][298][300][64];
 
-void getContentTensor(FILE* contentFile){
+float* getContentTensor1(FILE* contentFile){
 
-	int temp = 0;
-	contentFileOffset = 0;
+	printf("hi mithi");
+	int notUsed, h, w, d;
+	float temp = 0;
 	char discard[256];
 
 	fscanf(contentFile, "%d", &notUsed);
@@ -24,24 +25,28 @@ void getContentTensor(FILE* contentFile){
 	fscanf(contentFile, "%d", &w);
 	fscanf(contentFile, "%d", &d);
 
+	printf("Dimensions are %d %d %d %d", notUsed, h, w, d);
+
 	// create tensor
 	float* tensor;
 	tensor = malloc(sizeof(h*w*d));
 
 	// Discard the next line using a buffer
-	fgets(discard, 50, content_file);
+	fgets(discard, 50, contentFile);
 
 	// Iterate through file and get tensor values
 	for(int i = 0; i < h*w*d; i++){
 		fscanf(contentFile, "%f", &temp);
 		tensor[i] = temp;
 	}
-	contentFileOffset = ftell();
+
+	return tensor;
 }
-float* getContentTensor2(FILE* contentFile;){
 
-	int temp = 0;
+float* getContentTensor2(FILE* contentFile){
 
+	float temp = 0;
+	int notUsed, h, w, d;
 	char discard[256];
 
 	fscanf(contentFile, "%d", &notUsed);
@@ -54,7 +59,7 @@ float* getContentTensor2(FILE* contentFile;){
 	tensor = malloc(sizeof(h*w*d));
 
 	// Discard the next line using a buffer
-	fgets(discard, 50, content_file);
+	fgets(discard, 50, contentFile);
 
 	// Iterate through file and get tensor values
 	for(int i = 0; i < h*w*d; i++){
@@ -97,7 +102,7 @@ float* getContentTensor2(FILE* contentFile;){
 	//printf("%f\n", content_tensor[0][25][0][0]);
 
 
-}
+
 
 void getStyleTensor1(){
 		// Shape of content tensor is 1x19x19x512
@@ -234,23 +239,36 @@ void getStyleTensor2(){
 }
 
 int main(){
+	float* contentTensor1;
+	float* contentTensor2;
 	FILE* file;
-  long int contentFileOffset;
+  	long int contentFileOffset;
 	if((file = fopen("content.txt","r")) == NULL){
 		printf("Content file not found!");
 		exit(1);
 	}
-	getContentTensor1(file);
-	contentFileOffset = ftell(file);
-	if(fseek(file, contentFileOffset, 0))
-		exit(1);
-	getContentTensor2(file);
-	getStyleTensor1();
-	getStyleTensor2();
 
-	printf("%f\n", content_tensor1[0][0][0][2]);
-	printf("%f\n", content_tensor2[0][0][0][2]);
-	printf("%f\n", style_tensor1[0][0][0][6]);
-	printf("%f\n", style_tensor2[0][0][0][8]);
+	contentTensor1 = getContentTensor1(file);
+	contentFileOffset = ftell(file);
+	if(fseek(file, contentFileOffset, 0)){
+		exit(1);
+	}
+
+	//contentTensor2 = getContentTensor2(file);
+
+
+	//getStyleTensor1();
+	//getStyleTensor2();
+
+	//printf("%f\n", content_tensor1[0][0][0][2]);
+	//printf("%f\n", content_tensor2[0][0][0][2]);
+	//printf("%f\n", style_tensor1[0][0][0][6]);
+	//printf("%f\n", style_tensor2[0][0][0][8]);
+
+	//printf("first element is %f", contentTensor1[0]);
+
+	free(contentTensor1);
+	//free(contentTensor2);
+
 	return 0;
 }
