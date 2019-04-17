@@ -11,30 +11,43 @@ typedef struct vgg16{
 } tensorHolder;
 
 
-// Flatten tensors from 3d to 1d 
-//float* flatten(float[][][] tensor, int height, int width, int depth){
 
-	// dynamically allocate memory for flattenedArray
-//	float* flattenedArray;
-//	flattenedArray = malloc(sizeof(tensor));
+void getContentTensor(){
 
-	// index 3d array to 1d array with following method
-	// Flat[x + WIDTH * (y + DEPTH * z)] = Original[x, y, z]
-//	int i = 0;
-//	int j = 0;
-//	int k = 0;
-//	int flatIdx;
-//	for(i = 0; i < height; i++){
-//		for(j = 0; j < width; j++){
-//			for(k = 0; k < depth; k++){
-//				flatIdx = i + width * (j + depth * k);
-//				flattenedArray[flatIdx] = tensor[i][j][k];
-//			}
-//		}
-//	}
+	int temp = 0;
 
-//	return flattenedArray;
-//}
+	// get dimensions of tensor
+	int notUsed = 0;
+	int h = 0;
+	int w = 0;
+	int d = 0;
+
+	char discard[256];
+
+	FILE* contentFile;
+	if((contentFile = fopen("content.txt","r")) == NULL){
+		printf("Content file not found!");
+		exit(1);
+	}
+
+	fscanf(contentFile, "%d", &notUsed);
+	fscanf(contentFile, "%d", &h);
+	fscanf(contentFile, "%d", &w);
+	fscanf(contentFile, "%d", &d);
+	
+	// create tensor
+	float* tensor;
+	tensor = malloc(sizeof(h*w*d));
+
+	// Discard the next line using a buffer
+	fgets(discard, 50, content_file);
+
+	// Iterate through file and get tensor values
+	for(int i = 0; i < h*w*d; i++){
+		fscanf(contentFile, "%f", &temp);
+		tensor[i] = temp;
+	}
+}
 
 
 
@@ -58,9 +71,8 @@ float meanSquaredError(float* tensor1, float* tensor2){
 // Function to calculate total content loss
 float createContentLoss(tensorHolder* layers){
 
-	float val;
-	float lossVal;
-	float totalLoss;
+	float lossVal = 0;
+	float totalLoss = 0;
 
 	// instantiate layer losses array
 	float layerLosses[sizeof(layers)];
@@ -93,17 +105,5 @@ float createContentLoss(tensorHolder* layers){
 
 
 int main(){
-	float arr[2][2][2];
-	arr[0][0][0] = 2.3;
-	arr[0][0][1] = 4.6;
-	arr[0][1][0] = 9.2;
-	arr[1][0][0] = 4.1;
-	arr[0][1][1] = 8.7;
-	arr[1][1][0] = 6.5;
-	arr[1][0][1] = 3.4;
-	arr[1][1][1] = 1.2;
 
-	float* flatBoi;
-	flatBoi = flatten(arr, 2, 2, 2);
-	free(flatBoi);
 }
