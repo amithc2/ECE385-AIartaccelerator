@@ -48,8 +48,9 @@ for layer, value in zip(layers, values):
     with open('content.txt', 'w') as outfile:
         # I'm writing a header here just for the sake of readability
         # Any line starting with "#" will be ignored by numpy.loadtxt
-        outfile.write('# Array shape: {0}\n'.format(data.shape))
-
+        #outfile.write('# Array shape: {0}\n'.format(data.shape))
+        outfile.write('%d %d %d %d' % (data.shape[0], data.shape[1], data.shape[2], data.shape[3]))
+        outfile.write('\n')
         # Iterating through a ndimensional array produces slices along
         # the last axis. This is equivalent to data[i,:,:] in this case
         for data_slice in data:
@@ -70,8 +71,9 @@ for layer, value in zip(layers, values):
     with open('content.txt', 'a') as outfile:
         # I'm writing a header here just for the sake of readability
         # Any line starting with "#" will be ignored by numpy.loadtxt
-        outfile.write('# Array shape: {0}\n'.format(data.shape))
-
+        #outfile.write('# Array shape: {0}\n'.format(data.shape))
+        outfile.write('%d %d %d %d' % (data.shape[0], data.shape[1], data.shape[2], data.shape[3]))
+        outfile.write('\n')
         # Iterating through a ndimensional array produces slices along
         # the last axis. This is equivalent to data[i,:,:] in this case
         k = 0
@@ -98,8 +100,9 @@ for layer, value in zip(layers, values):
     with open('style.txt', 'w') as outfile:
         # I'm writing a header here just for the sake of readability
         # Any line starting with "#" will be ignored by numpy.loadtxt
-        outfile.write('# Array shape: {0}\n'.format(data.shape))
-
+        #outfile.write('# Array shape: {0}\n'.format(data.shape))
+        outfile.write('%d %d %d %d' % (data.shape[0], data.shape[1], data.shape[2], data.shape[3]))
+        outfile.write('\n')
         # Iterating through a ndimensional array produces slices along
         # the last axis. This is equivalent to data[i,:,:] in this case
         for data_slice in data:
@@ -120,8 +123,9 @@ for layer, value in zip(layers, values):
     with open('style.txt', 'a') as outfile:
         # I'm writing a header here just for the sake of readability
         # Any line starting with "#" will be ignored by numpy.loadtxt
-        outfile.write('# Array shape: {0}\n'.format(data.shape))
-
+        #outfile.write('# Array shape: {0}\n'.format(data.shape))
+        outfile.write('%d %d %d %d' % (data.shape[0], data.shape[1], data.shape[2], data.shape[3]))
+        outfile.write('\n')
         # Iterating through a ndimensional array produces slices along
         # the last axis. This is equivalent to data[i,:,:] in this case
         k = 0
