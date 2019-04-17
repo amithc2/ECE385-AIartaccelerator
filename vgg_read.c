@@ -1,274 +1,165 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
-
 struct vgg16{
-	float**** content_tensor1;
-	float content_tensor2[1][75][75][256];
-	float style_tensor1[1][75][75][256];
-	float style_tensor2[1][75][75][256];
+	float* layer_tensor;
+	float* value_tensor;
+	int h, w,d;
 };
 
-static float style_tensor1[1][19][19][512];
-static float style_tensor2[1][298][300][64];
-
-float* getContentTensor1(FILE* contentFile){
-
-	printf("hi mithi");
-	int notUsed, h, w, d;
+float* getTensor(int h, int w, int d, FILE* contentFile){
+	int i;
 	float temp = 0;
 	char discard[256];
 
-	fscanf(contentFile, "%d", &notUsed);
-	fscanf(contentFile, "%d", &h);
-	fscanf(contentFile, "%d", &w);
-	fscanf(contentFile, "%d", &d);
-
-	printf("Dimensions are %d %d %d %d", notUsed, h, w, d);
-
 	// create tensor
 	float* tensor;
-	tensor = malloc(sizeof(h*w*d));
-
+	int length = h*w*d;
+	tensor = malloc(sizeof(float)*length);
 	// Discard the next line using a buffer
-	fgets(discard, 50, contentFile);
-
+	fscanf(contentFile, "%s", discard);
 	// Iterate through file and get tensor values
-	for(int i = 0; i < h*w*d; i++){
+	for(i = 0; i < length; i++){
 		fscanf(contentFile, "%f", &temp);
 		tensor[i] = temp;
 	}
 
 	return tensor;
 }
-
-float* getContentTensor2(FILE* contentFile){
-
-	float temp = 0;
+struct vgg16* makeLayers(char* layerfilename, char* valuefilename, int size){
+	struct vgg16* layers = (struct vgg16*)malloc(sizeof(struct vgg16)*size);
+	FILE* layerfile;
+	FILE* valuefile;
+	long int LayerOffset;
+	long int ValueOffset;
 	int notUsed, h, w, d;
-	char discard[256];
-
-	fscanf(contentFile, "%d", &notUsed);
-	fscanf(contentFile, "%d", &h);
-	fscanf(contentFile, "%d", &w);
-	fscanf(contentFile, "%d", &d);
-
-	// create tensor
-	float* tensor;
-	tensor = malloc(sizeof(h*w*d));
-
-	// Discard the next line using a buffer
-	fgets(discard, 50, contentFile);
-
-	// Iterate through file and get tensor values
-	for(int i = 0; i < h*w*d; i++){
-		fscanf(contentFile, "%f", &temp);
-		tensor[i] = temp;
+	if((layerfile = fopen(layerfilename,"r")) == NULL){
+		printf("Content file not found!");
+		return NULL;
 	}
-	return tensor;
+	if((valuefile = fopen(valuefilename,"r")) == NULL){
+		printf("Content file not found!");
+		return NULL;
+	}
+	for(int i = 0; i < size; i++){
+
+		fscanf(layerfile, "%d", &notUsed);
+		fscanf(layerfile, "%d", &h);
+		fscanf(layerfile, "%d", &w);
+		fscanf(layerfile, "%d", &d);
+
+		layers[i].h = h;
+		layers[i].w = w;
+		layers[i].d = d;
+
+		// printf("Dimensions are %d %d %d %d\n", notUsed, layers[i].h, layers[i].w, layers[i].d);
+
+		layers[i].layer_tensor = getTensor(h, w, d, layerfile);
+		// printf("%f\n", layers[i].layer_tensor[0]);
+
+		fscanf(valuefile, "%d", &notUsed);
+		fscanf(valuefile, "%d", &h);
+		fscanf(valuefile, "%d", &w);
+		fscanf(valuefile, "%d", &d);
+
+		// printf("Dimensions are %d %d %d %d\n", notUsed, h, w, d);
+
+		layers[i].value_tensor = getTensor(h, w, d, valuefile);
+		ValueOffset = ftell(valuefile);
+		if(fseek(valuefile, ValueOffset, 0)){
+			exit(1);
+		}
+		LayerOffset = ftell(layerfile);
+		if(fseek(layerfile, LayerOffset, 0)){
+			exit(1);
+		}
+	}
+	return layers;
+}
+void deleteLayers(struct vgg16* layers, int size){
+	for(int i = 0; i < size; i++){
+		free(layers[i].layer_tensor);
+		free(layers[i].value_tensor);
+	}
+	free(layers);
 }
 
-	//return content_tensor;
+float meanSquaredError(float* tensor1, float* tensor2, int h, int w, int d){
+	float reducedSum = 0.0;
+	float matSub = 0.0;
+	int i = 0;
+	int numElements = h*w*d;
 
-	// These were just tests I wrote to make sure the values were stored to every
-	// layer correctly
+  	for(i = 0; i < numElements; i++){
+  		matSub = (tensor1[i]-tensor2[i])*(tensor1[i]-tensor2[i]);
+  		reducedSum += matSub;
+  	}
 
-	// Test first layer
-
-	//printf("%f\n", content_tensor[0][0][0][0]);
-	//printf("%f\n", content_tensor[0][0][0][1]);
-	//printf("%f\n", content_tensor[0][0][0][2]);
-	//printf("%f\n", content_tensor[0][0][0][3]);
-
-
-	//printf("\n");
-
-	// Test second layer
-
-	//printf("%f\n", content_tensor[0][0][1][3]);
-	//printf("%f\n", content_tensor[0][0][2][0]);
-	//printf("%f\n", content_tensor[0][0][3][0]);
-	//printf("%f\n", content_tensor[0][0][9][0]);
-
-	//printf("\n");
-
-	// Test third layer
-
-	//printf("%f\n", content_tensor[0][0][74][255]);
-	//printf("%f\n", content_tensor[0][1][0][0]);
-	//printf("%f\n", content_tensor[0][2][0][0]);
-	//printf("%f\n", content_tensor[0][3][0][0]);
-	//printf("%f\n", content_tensor[0][25][0][0]);
-
-
-
-
-void getStyleTensor1(){
-		// Shape of content tensor is 1x19x19x512
-
-	// HOW THE TENSOR IS FORMATTED:
-	// Every dimension index is accounted for in the second index so if you want
-	// to access dimension index 2, e.g. content_tensor[0][2][0][0]
-	// The third dimension is each of the 75 lines, and the fourth dimension is the 256 values
-	// in each line
-
-	char discard[256];
-	float read_num;
-	FILE* content_file;
-	if((content_file = fopen("style.txt","r")) == NULL){
-		printf("Content file not found!");
-		exit(1);
-	}
-
-	// Discard the first three lines of the content file
-	fgets(discard, 50, content_file);
-	printf("%s\n",discard);
-	fgets(discard, 50, content_file);
-	printf("%s\n",discard);
-
-	// Iterate through file and get tensor values
-	for(int i = 0; i < 19; i++){
-		for(int j = 0; j < 19; j++){
-			for(int k = 0; k < 512; k++){
-				fscanf(content_file,"%f",&read_num);
-				style_tensor1[0][i][j][k] = read_num;
-			}
-		}
-
-	}
-
-	//return content_tensor;
-
-	// These were just tests I wrote to make sure the values were stored to every
-	// layer correctly
-
-	// Test first layer
-
-	//printf("%f\n", content_tensor[0][0][0][0]);
-	//printf("%f\n", content_tensor[0][0][0][1]);
-	//printf("%f\n", content_tensor[0][0][0][2]);
-	//printf("%f\n", content_tensor[0][0][0][3]);
-
-
-	//printf("\n");
-
-	// Test second layer
-
-	//printf("%f\n", content_tensor[0][0][1][3]);
-	//printf("%f\n", content_tensor[0][0][2][0]);
-	//printf("%f\n", content_tensor[0][0][3][0]);
-	//printf("%f\n", content_tensor[0][0][9][0]);
-
-	//printf("\n");
-
-	// Test third layer
-
-	//printf("%f\n", content_tensor[0][0][74][255]);
-	//printf("%f\n", content_tensor[0][1][0][0]);
-	//printf("%f\n", content_tensor[0][2][0][0]);
-	//printf("%f\n", content_tensor[0][3][0][0]);
-	//printf("%f\n", content_tensor[0][25][0][0]);
+  	return reducedSum / numElements;
 }
 
-void getStyleTensor2(){
-		// Shape of content tensor is 1x298x300x64
+// Function to calculate total content loss
+float createContentLoss(struct vgg16* layers){
 
-	// HOW THE TENSOR IS FORMATTED:
-	// Every dimension index is accounted for in the second index so if you want
-	// to access dimension index 2, e.g. content_tensor[0][2][0][0]
-	// The third dimension is each of the 75 lines, and the fourth dimension is the 256 values
-	// in each line
+	float lossVal = 0;
+	float totalLoss = 0;
 
-	char discard[256];
-	float read_num;
-	FILE* content_file;
-	if((content_file = fopen("style2.txt","r")) == NULL){
-		printf("Content file not found!");
-		exit(1);
+	// instantiate layer losses array
+	float layerLosses[sizeof(layers)/sizeof(struct vgg16)];
+
+	// calculate content loss
+	int i;
+	for(i = 0; i < sizeof(layers)/sizeof(struct vgg16); i++){
+		lossVal = meanSquaredError((layers[i]).layer_tensor,(layers[i]).value_tensor, layers[i].h, layers[i].w, layers[i].d);
+		layerLosses[i] = lossVal;
 	}
 
-	// Discard the first three lines of the content file
-	fgets(discard, 50, content_file);
-	printf("%s\n",discard);
-	fgets(discard, 50, content_file);
-	printf("%s\n",discard);
+	totalLoss = layerLosses[0];
+	return totalLoss;
+}
 
-	// Iterate through file and get tensor values
-	for(int i = 0; i < 298; i++){
-		for(int j = 0; j < 300; j++){
-			for(int k = 0; k < 64; k++){
-				fscanf(content_file,"%f",&read_num);
-				style_tensor2[0][i][j][k] = read_num;
+float* createGramMatrix(float* tensor, int h, int w, int d){
+	// create transpose of tensor
+	float transpose[h*w*d];
+	// have to malloc result, make sure to delete in style layer function
+	int rows = h*w;
+	float* result = (float*)malloc(sizeof(float)*(rows*rows));
+	int i, j, k;
+	// cols == d
+	for(i = 0; i < rows; i++){
+		for(j = 0; j < d; j++){
+			transpose[j*rows + i] = tensor[i*d +j];
+		}
+	}
+	// multiply the 2D tensors and store result (THIS IS CURRENTLY CAUSING SEGFAULT)
+	for(i = 0; i < rows; i++){
+		for(j = 0; j < rows; j++){
+			result[rows*i + j] = 0;
+			for(k = 0; k < d; k++){
+				result[rows*i + j] += tensor[d*i + k] * transpose[rows*k + j];
 			}
 		}
-
 	}
 
-	//return content_tensor;
-
-	// These were just tests I wrote to make sure the values were stored to every
-	// layer correctly
-
-	// Test first layer
-
-	//printf("%f\n", content_tensor[0][0][0][0]);
-	//printf("%f\n", content_tensor[0][0][0][1]);
-	//printf("%f\n", content_tensor[0][0][0][2]);
-	//printf("%f\n", content_tensor[0][0][0][3]);
-
-
-	//printf("\n");
-
-	// Test second layer
-
-	//printf("%f\n", content_tensor[0][0][1][3]);
-	//printf("%f\n", content_tensor[0][0][2][0]);
-	//printf("%f\n", content_tensor[0][0][3][0]);
-	//printf("%f\n", content_tensor[0][0][9][0]);
-
-	//printf("\n");
-
-	// Test third layer
-
-	//printf("%f\n", content_tensor[0][0][74][255]);
-	//printf("%f\n", content_tensor[0][1][0][0]);
-	//printf("%f\n", content_tensor[0][2][0][0]);
-	//printf("%f\n", content_tensor[0][3][0][0]);
-	//printf("%f\n", content_tensor[0][25][0][0]);
+	//return result
+	return result;
 }
 
 int main(){
-	float* contentTensor1;
-	float* contentTensor2;
-	FILE* file;
-  	long int contentFileOffset;
-	if((file = fopen("content.txt","r")) == NULL){
-		printf("Content file not found!");
-		exit(1);
-	}
+	struct vgg16* styles = makeLayers("stylelayer.txt", "stylevalue.txt", 13);
+	struct vgg16* content = makeLayers("contentlayer.txt", "contentlayer.txt", 1);
+	printf("The float value returned by createContentLoss: %f\n", createContentLoss(content));
+	float* gram = createGramMatrix(styles[0].layer_tensor, styles[0].h, styles[0].w, styles[0].d);
+	for(size_t i = 0; i < styles[0].h*styles[0].d*styles[0].w; i++)
+		printf("The gram matrix: %f\n", gram[i]);
+	free(gram);
+	deleteLayers(styles, 13);
+	deleteLayers(content, 1);
 
-	contentTensor1 = getContentTensor1(file);
-	contentFileOffset = ftell(file);
-	if(fseek(file, contentFileOffset, 0)){
-		exit(1);
-	}
-
-	//contentTensor2 = getContentTensor2(file);
-
-
-	//getStyleTensor1();
-	//getStyleTensor2();
-
-	//printf("%f\n", content_tensor1[0][0][0][2]);
-	//printf("%f\n", content_tensor2[0][0][0][2]);
-	//printf("%f\n", style_tensor1[0][0][0][6]);
-	//printf("%f\n", style_tensor2[0][0][0][8]);
-
-	//printf("first element is %f", contentTensor1[0]);
-
-	free(contentTensor1);
-	//free(contentTensor2);
+	// free(contentLayerTensor1);
+	// free(contentValueTensor1);
+	// free(styleLayerTensor1);
+	// free(styleValueTensor1);
 
 	return 0;
 }

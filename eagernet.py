@@ -45,7 +45,7 @@ values = session.run(layers, feed_dict = feed_dict)
 for layer, value in zip(layers, values):
     tensor = session.run(layer, feed_dict = feed_dict)
     data = tensor
-    with open('content.txt', 'w') as outfile:
+    with open('contentlayer.txt', 'w') as outfile:
         # I'm writing a header here just for the sake of readability
         # Any line starting with "#" will be ignored by numpy.loadtxt
         #outfile.write('# Array shape: {0}\n'.format(data.shape))
@@ -55,7 +55,7 @@ for layer, value in zip(layers, values):
         # the last axis. This is equivalent to data[i,:,:] in this case
         for data_slice in data:
             j = 0
-            outfile.write('# New Content Layer Tensor \n')
+            outfile.write('#NewContentLayerTensor\n')
             for data_meme_slice in data_slice:
                 # The formatting string indicates that I'm writing out
                 # the values in left-justified columns 7 characters in width
@@ -65,11 +65,9 @@ for layer, value in zip(layers, values):
 
                 # Writing out a break to indicate different slices...
                 #outfile.write('\n')
-        outfile.write('done')
-        outfile.write('\n')
 for layer, value in zip(layers, values):
     data = value
-    with open('content.txt', 'a') as outfile:
+    with open('contentvalue.txt', 'a') as outfile:
         # I'm writing a header here just for the sake of readability
         # Any line starting with "#" will be ignored by numpy.loadtxt
         #outfile.write('# Array shape: {0}\n'.format(data.shape))
@@ -80,7 +78,7 @@ for layer, value in zip(layers, values):
         k = 0
         for data_slice in data:
             j = 0
-            outfile.write('# New Content Value Tensor '+ np.str(k) + '\n')
+            outfile.write('#NewContentValueTensor'+ np.str(k) + '\n')
             for data_meme_slice in data_slice:
                 # The formatting string indicates that I'm writing out
                 # the values in left-justified columns 7 characters in width
@@ -90,15 +88,13 @@ for layer, value in zip(layers, values):
 
                 # Writing out a break to indicate different slices...
                # outfile.write('\n')
-        outfile.write('done')
-        outfile.write('\n')
 # for style stuff
 layers = test.get_layer_tensors(style_layer_ids)
 feed_dict = test.create_feed_dict(image = style_image)
 values = session.run(layers, feed_dict = feed_dict)
 for layer, value in zip(layers, values):
     data = session.run(layer, feed_dict = feed_dict)
-    with open('style.txt', 'w') as outfile:
+    with open('stylelayer.txt', 'a') as outfile:
         # I'm writing a header here just for the sake of readability
         # Any line starting with "#" will be ignored by numpy.loadtxt
         #outfile.write('# Array shape: {0}\n'.format(data.shape))
@@ -108,7 +104,7 @@ for layer, value in zip(layers, values):
         # the last axis. This is equivalent to data[i,:,:] in this case
         for data_slice in data:
             j = 0
-            outfile.write('# New Style Layer Tensor \n')
+            outfile.write('#NewStyleLayerTensor\n')
             for data_meme_slice in data_slice:
                 # The formatting string indicates that I'm writing out
                 # the values in left-justified columns 7 characters in width
@@ -118,11 +114,9 @@ for layer, value in zip(layers, values):
 
                 # Writing out a break to indicate different slices...
                 #outfile.write('\n')
-        outfile.write('done')
-        outfile.write('\n')
 for layer, value in zip(layers, values):
     data = value
-    with open('style.txt', 'a') as outfile:
+    with open('stylevalue.txt', 'a') as outfile:
         # I'm writing a header here just for the sake of readability
         # Any line starting with "#" will be ignored by numpy.loadtxt
         #outfile.write('# Array shape: {0}\n'.format(data.shape))
@@ -133,7 +127,7 @@ for layer, value in zip(layers, values):
         k = 0
         for data_slice in data:
             j = 0
-            outfile.write('# New Style Value Tensor'+ np.str(k) + '\n')
+            outfile.write('#NewStyleValueTensor'+ np.str(k) + '\n')
             for data_meme_slice in data_slice:
                 # The formatting string indicates that I'm writing out
                 # the values in left-justified columns 7 characters in width
@@ -143,8 +137,6 @@ for layer, value in zip(layers, values):
 
                 # Writing out a break to indicate different slices...
                 #outfile.write('\n')
-        outfile.write('done')
-        outfile.write('\n')
     #np.savetxt('text.txt',tensor, delimiter = ',')
 session.close()
 # img = style_transfer(content_image=content_image,
