@@ -9,73 +9,60 @@ struct vgg16{
 	float style_tensor1[1][75][75][256];
 	float style_tensor2[1][75][75][256];
 };
-static int useless, h, w, d;
-static float* content_tensor1;
-static float* content_tensor2;
+static int notUsed, h, w, d;
 static float style_tensor1[1][19][19][512];
 static float style_tensor2[1][298][300][64];
 
-void getContentTensor1(){
-	// Shape of content tensor is 1x75x75x256
+void getContentTensor(FILE* contentFile){
 
-
-	// HOW THE TENSOR IS FORMATTED:
-	// Every dimension index is accounted for in the second index so if you want
-	// to access dimension index 2, e.g. content_tensor[0][2][0][0]
-	// The third dimension is each of the 75 lines, and the fourth dimension is the 256 values
-	// in each line
-
+	int temp = 0;
+	contentFileOffset = 0;
 	char discard[256];
-	float read_num;
-	FILE* content_file;
-	if((content_file = fopen("content.txt","r")) == NULL){
-		printf("Content file not found!");
-		exit(1);
-	}
 
-	// Discard the first three lines of the content file
+	fscanf(contentFile, "%d", &notUsed);
+	fscanf(contentFile, "%d", &h);
+	fscanf(contentFile, "%d", &w);
+	fscanf(contentFile, "%d", &d);
+
+	// create tensor
+	float* tensor;
+	tensor = malloc(sizeof(h*w*d));
+
+	// Discard the next line using a buffer
 	fgets(discard, 50, content_file);
-	printf("%s\n",discard);
-	fgets(discard, 50, content_file);
-	printf("%s\n",discard);
 
 	// Iterate through file and get tensor values
 	for(int i = 0; i < h*w*d; i++){
-		fscanf(content_file, "%f", &read_num);
-		content_tensor1[i] = read_num;
+		fscanf(contentFile, "%f", &temp);
+		tensor[i] = temp;
 	}
+	contentFileOffset = ftell();
 }
-void getContentTensor2(){
-	// Shape of content tensor is 1x75x75x256
+float* getContentTensor2(FILE* contentFile;){
 
-
-	// HOW THE TENSOR IS FORMATTED:
-	// Every dimension index is accounted for in the second index so if you want
-	// to access dimension index 2, e.g. content_tensor[0][2][0][0]
-	// The third dimension is each of the 75 lines, and the fourth dimension is the 256 values
-	// in each line
+	int temp = 0;
 
 	char discard[256];
-	float read_num;
-	FILE* content_file;
-	if((content_file = fopen("content2.txt","r")) == NULL){
-		printf("Content file not found!");
-		exit(1);
-	}
 
-	// Discard the first three lines of the content file
+	fscanf(contentFile, "%d", &notUsed);
+	fscanf(contentFile, "%d", &h);
+	fscanf(contentFile, "%d", &w);
+	fscanf(contentFile, "%d", &d);
+
+	// create tensor
+	float* tensor;
+	tensor = malloc(sizeof(h*w*d));
+
+	// Discard the next line using a buffer
 	fgets(discard, 50, content_file);
-	printf("%s\n",discard);
-	fgets(discard, 50, content_file);
-	printf("%s\n",discard);
 
 	// Iterate through file and get tensor values
 	for(int i = 0; i < h*w*d; i++){
-		fscanf(content_file, "%f", &read_num);
-		content_tensor2[i] = read_num;
+		fscanf(contentFile, "%f", &temp);
+		tensor[i] = temp;
 	}
-
-	}
+	return tensor;
+}
 
 	//return content_tensor;
 
@@ -247,8 +234,17 @@ void getStyleTensor2(){
 }
 
 int main(){
-	getContentTensor1();
-	getContentTensor2();
+	FILE* file;
+  long int contentFileOffset;
+	if((file = fopen("content.txt","r")) == NULL){
+		printf("Content file not found!");
+		exit(1);
+	}
+	getContentTensor1(file);
+	contentFileOffset = ftell(file);
+	if(fseek(file, contentFileOffset, 0))
+		exit(1);
+	getContentTensor2(file);
 	getStyleTensor1();
 	getStyleTensor2();
 
