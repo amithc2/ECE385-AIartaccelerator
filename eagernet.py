@@ -65,7 +65,8 @@ for layer, value in zip(layers, values):
 
                 # Writing out a break to indicate different slices...
                 #outfile.write('\n')
-                j+=1
+        outfile.write('done')
+        outfile.write('\n')
 for layer, value in zip(layers, values):
     data = value
     with open('content.txt', 'a') as outfile:
@@ -89,8 +90,8 @@ for layer, value in zip(layers, values):
 
                 # Writing out a break to indicate different slices...
                # outfile.write('\n')
-                j+=1
-            k+=1
+        outfile.write('done')
+        outfile.write('\n')
 # for style stuff
 layers = test.get_layer_tensors(style_layer_ids)
 feed_dict = test.create_feed_dict(image = style_image)
@@ -117,7 +118,8 @@ for layer, value in zip(layers, values):
 
                 # Writing out a break to indicate different slices...
                 #outfile.write('\n')
-                j+=1
+        outfile.write('done')
+        outfile.write('\n')
 for layer, value in zip(layers, values):
     data = value
     with open('style.txt', 'a') as outfile:
@@ -141,8 +143,8 @@ for layer, value in zip(layers, values):
 
                 # Writing out a break to indicate different slices...
                 #outfile.write('\n')
-                j+=1
-            k+=1
+        outfile.write('done')
+        outfile.write('\n')
     #np.savetxt('text.txt',tensor, delimiter = ',')
 session.close()
 # img = style_transfer(content_image=content_image,

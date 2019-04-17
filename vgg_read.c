@@ -9,7 +9,7 @@ struct vgg16{
 	float style_tensor1[1][75][75][256];
 	float style_tensor2[1][75][75][256];
 };
-static int h, w, d;
+static int useless, h, w, d;
 static float* content_tensor1;
 static float* content_tensor2;
 static float style_tensor1[1][19][19][512];
@@ -70,13 +70,10 @@ void getContentTensor2(){
 	printf("%s\n",discard);
 
 	// Iterate through file and get tensor values
-	for(int i = 0; i < 75; i++){
-		for(int j = 0; j < 75; j++){
-			for(int k = 0; k < 256; k++){
-				fscanf(content_file,"%f",&read_num);
-				content_tensor2[0][i][j][k] = read_num;
-			}
-		}
+	for(int i = 0; i < h*w*d; i++){
+		fscanf(content_file, "%f", &read_num);
+		content_tensor2[i] = read_num;
+	}
 
 	}
 
