@@ -123,8 +123,7 @@ float* createGramMatrix(float* tensor, int h, int w, int d){
 	float transpose[h*w*d];
 	// have to malloc result, make sure to delete in style layer function
 	int rows = h*w;
-	float* result = (float*)malloc(sizeof(float)*(rows*rows));
-
+	float* result = (float*)malloc(sizeof(float)*(h*w*d));
 
 	int i, j, k;
 	// cols == d
@@ -135,14 +134,14 @@ float* createGramMatrix(float* tensor, int h, int w, int d){
 	}
 
 	// multiply the 2D tensors and store result (THIS IS CURRENTLY CAUSING SEGFAULT)
-	for(i = 0; i < rows; i++){
-		for(j = 0; j < rows; j++){
-			result[rows*i + j] = 0;
-			for(k = 0; k < d; k++){
-				result[rows*i + j] += tensor[d*i + k] * transpose[rows*k + j];
-			}
-		}
-	}
+	// for(i = 0; i < rows; i++){
+	// 	for(j = 0; j < rows; j++){
+	// 		result[rows*i + j] = 0;
+	// 		for(k = 0; k < d; k++){
+	// 			result[rows*i + j] += tensor[d*i + k] * transpose[rows*k + j];
+	// 		}
+	// 	}
+	// }
 
 	//return result
 	return result;
@@ -160,15 +159,10 @@ float createStyleLoss(struct vgg16* layers){
 	float layerLosses[sizeof(layers)/sizeof(struct vgg16)];
 
 	// find gramLayers
+	// calculate style loss
 	int i;
 	for(i = 0; i < sizeof(layers)/sizeof(struct vgg16); i++){
 		gramLayers[i] = createGramMatrix(layers[i].layer_tensor, layers[i].h, layers[i].w, layers[i].d);
-	}
-
-
-	// calculate style loss
-
-	for(i = 0; i < sizeof(layers)/sizeof(struct vgg16); i++){
 		lossVal = meanSquaredError(gramLayers[i],(layers[i]).value_tensor, layers[i].h, layers[i].w, layers[i].d);
 		layerLosses[i] = lossVal;
 	}
@@ -177,7 +171,7 @@ float createStyleLoss(struct vgg16* layers){
 	// reduceMean of layerLosses array
 	float sum = 0;
 	int numElements = 0;
-	for(i = 0; i < sizeof(layerLosses); i++){
+	for(i = 0; i < (sizeof(layerLosses)/sizeof(float)); i++){
 		sum += layerLosses[i];
 		numElements++;
 	}
