@@ -124,6 +124,8 @@ float* createGramMatrix(float* tensor, int h, int w, int d){
 	// have to malloc result, make sure to delete in style layer function
 	int rows = h*w;
 	float* result = (float*)malloc(sizeof(float)*(rows*rows));
+
+
 	int i, j, k;
 	// cols == d
 	for(i = 0; i < rows; i++){
@@ -131,6 +133,7 @@ float* createGramMatrix(float* tensor, int h, int w, int d){
 			transpose[j*rows + i] = tensor[i*d +j];
 		}
 	}
+
 	// multiply the 2D tensors and store result (THIS IS CURRENTLY CAUSING SEGFAULT)
 	for(i = 0; i < rows; i++){
 		for(j = 0; j < rows; j++){
