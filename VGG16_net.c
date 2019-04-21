@@ -5,18 +5,18 @@
 // IMPLEMENTATION OF VGG16 IN C:
 
 // Dense Layer
-float* denseLayer(int output_shape, float* input, float* weight, float* bias, int h1, int w1, int h2, int w2){
-  int i, j;
-  int size;
-  float* matMul;
-  matMul = matrixMultiplier(input, weight, h1, w1, h2, w2);
-  for(i = 0; i < h1; i++){
-    for(j = 0; j < w2; j++){
-      matMul[(w2*i)+j] = matMul[(w2*i)+j] + bias[j];
-    }
-  }
-  return matMul;
-}
+// float* denseLayer(int output_shape, float* input, float* weight, float* bias, int h1, int w1, int h2, int w2){
+//   int i, j;
+//   int size;
+//   float* matMul;
+//   matMul = matrixMultiplier(input, weight, h1, w1, h2, w2);
+//   for(i = 0; i < h1; i++){
+//     for(j = 0; j < w2; j++){
+//       matMul[(w2*i)+j] = matMul[(w2*i)+j] + bias[j];
+//     }
+//   }
+//   return matMul;
+// }
 
 
 // matrixMultiplier
@@ -83,7 +83,7 @@ float* matrixIndexMultiplier(float* matrix1, float* matrix2, int h1, int w1, int
   for(i = 0; i < h1; i++){
     for(j = 0; j < w2; j++){
       for(k = 0; k < depth; k++){
-        result[i + (w2 * (j + (h1 * k)))] = matrix1[i + (w2 * (j + (h1 * k)))]*matrix2[i + (w2 * (j + (h1 * k)))];
+        result[i + (w2 * (j + (depth * k)))] = matrix1[i + (w2 * (j + (depth * k)))]*matrix2[i + (w2 * (j + (depth * k)))];
       }
     }
   }
@@ -178,6 +178,7 @@ float* preprocess(float* im){
 // assuming the weights are going to be 3x3 filters
 // 3d to 1d indexing: Flat[x + WIDTH * (y + DEPTH * z)] = Original[x, y, z]
 float* conv_layer(float* input_image, float* weight, int rows, int cols, int depth){
+  // variable declarations
   int m = rows - 2;
   int n = cols - 2;
   int d = depth - 2;
@@ -186,40 +187,43 @@ float* conv_layer(float* input_image, float* weight, int rows, int cols, int dep
   int z = 0;
   int index = 0;
 
-  // this is my IMPLEMENTATION of zero-padding
+  // zero-padding
   float input_image_padded[(rows+2)*(cols+2)*(depth+2)];
   for(i = 0; i < (rows + 2); i++){
     for(j = 0; j < (cols + 2); j++){
       for(k = 0; k < (depth + 2); k++){
         if(i > 0 && i < rows + 1 && j > 0 && j < cols + 1 && k > 0 && k < depth + 1){
-          input_image_padded[i + (rows * (j + (depth * k)))] = input_image[(i - 1) + (rows * ((j - 1) + (depth * (k - 1))))];
+          input_image_padded[i + (cols * (j + (depth * k)))] = input_image[(i - 1) + (cols * ((j - 1) + (depth * (k - 1))))];
         }
         else{
-          input_image_padded[i + (rows * (j + (depth * k)))] = 0;
+          input_image_padded[i + (cols * (j + (depth * k)))] = 0;
         }
-        printf("padded : %f\n", input_image_padded[i + (rows * (j + (depth * k)))]);
+        printf("padded : %f\n", input_image_padded[i + (cols * (j + (depth * k)))]);
       }
     }
   }
 
   // actual convolution
   float* filtered_image = (float*)malloc(sizeof(float)*(rows*cols*depth));
+
   float patch[m*n*d];
 
   for(i = 0; i < rows; i++){
     for(j = 0; j < cols; j++){
       for(k = 0; k < depth; k++){
         y = 0;
+        // our filter is 3x3xdepth since the depth of our filter and the input
+        // must be equal
         for(a = 0; a < 3; a++){
           for(b = 0; b < 3; b++){
             for(c = 0; c < depth; c++){
-              patch[y] = input_image_padded[(i+a) + (rows * ((j+b) + (depth * (k+c))))];
+              patch[y] = input_image_padded[(i+a) + (cols * ((j+b) + (depth * (k+c))))];
               y++;
             }
           }
         }
         float* matrixmult = matrixIndexMultiplier(patch, weight, 3, 3, 3, 3, depth);
-        filtered_image[index] = sum(matrixmult, 27);
+        filtered_image[index] = sum(matrixmult, 3*3*depth);
         index++;
         free(matrixmult);
         z++;
@@ -230,14 +234,6 @@ float* conv_layer(float* input_image, float* weight, int rows, int cols, int dep
   return filtered_image;
 }
 
-
-
-
-
-
-
-
-
 // ReLU to introduce non linearity after convolutional layer
 // this should  be  a simple single for loop:
 /*
@@ -247,7 +243,7 @@ float* conv_layer(float* input_image, float* weight, int rows, int cols, int dep
       if(x[i] < 0)
         x[i] = 0;
     }
-  }
+  }G
 */
 void relu(float* x, int size){
   for(int i = 0; i < size; i++)
