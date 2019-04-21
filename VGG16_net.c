@@ -5,11 +5,10 @@
 // IMPLEMENTATION OF VGG16 IN C:
 
 // Dense Layer
-float* denseLayer(float* input, float* weight, float* bias, int h1, int w1, int h2, int w2){
+float* denseLayer(int output_shape, float* input, float* weight, float* bias, int h1, int w1, int h2, int w2){
   int i, j;
   int size;
   float* matMul;
-
   matMul = matrixMultiplier(input, weight, h1, w1, h2, w2);
   for(i = 0; i < h1; i++){
     for(j = 0; j < w2; j++){
@@ -48,7 +47,28 @@ float* matrixMultiplier(float* matrix1, float* matrix2, int h1, int w1, int h2, 
 
   return result;
 }
-float* matrixIndexMultiplier(float* matrix1, float* matrix2, int h1, int w1, int h2, int w2){
+// float* matrixIndexMultiplier(float* matrix1, float* matrix2, int h1, int w1, int h2, int w2){
+//
+//   // declarations
+//   int i, j, k;
+//   // num columns of first matrix must equal num rows of second matrix
+//   if(w1 != h2){
+//     return NULL;
+//   }
+//   // result will have same num rows as first matrix, same num columns as second
+//   float* result = (float*)malloc(sizeof(float)*(h1*w2));
+//
+//   // multiply matrices
+//   for(i = 0; i < h1; i++){
+//     for(j = 0; j < w2; j++){
+//       result[i*w2 + j] = matrix1[i*w2 + j]*matrix2[i*w2 + j];
+//     }
+//   }
+//
+//   return result;
+// }
+
+float* matrixIndexMultiplier(float* matrix1, float* matrix2, int h1, int w1, int h2, int w2, int depth){
 
   // declarations
   int i, j, k;
@@ -57,12 +77,14 @@ float* matrixIndexMultiplier(float* matrix1, float* matrix2, int h1, int w1, int
     return NULL;
   }
   // result will have same num rows as first matrix, same num columns as second
-  float* result = (float*)malloc(sizeof(float)*(h1*w2));
+  float* result = (float*)malloc(sizeof(float)*(h1*w2*depth));
 
   // multiply matrices
   for(i = 0; i < h1; i++){
     for(j = 0; j < w2; j++){
-      result[i*w2 + j] = matrix1[i*w2 + j]*matrix2[i*w2 + j];
+      for(k = 0; k < depth; k++){
+        result[i + (w2 * (j + (h1 * k)))] = matrix1[i + (w2 * (j + (h1 * k)))]*matrix2[i + (w2 * (j + (h1 * k)))];
+      }
     }
   }
 
@@ -111,46 +133,110 @@ float* preprocess(float* im){
     return new_image;
   }
 */
+// assuming the weights are going to be 3x3x3 filters
+// float* conv_layer(float* input_image, float* weight, int rows, int cols){
+//   int m = rows - 2;
+//   int n = cols - 2;
+//   int i, j, a, b;
+//   int y = 0;
+//   int z = 0;
+//   int index = 0;
+//
+//   // this is my IMPLEMENTATION of zero-padding
+//   float input_image_padded[(rows+2)*(cols+2)];
+//   for(i = 0; i < (rows + 2); i++){
+//     for(j = 0; j < (cols + 2); j++){
+//       if(i > 0 && i < rows + 1 && j > 0 && j < cols + 1)
+//         input_image_padded[i*(cols+2) + j]  = input_image[(i-1)*cols + (j-1)];
+//       else
+//         input_image_padded[i*(cols+2) + j] = 0;
+//       printf("padded : %f\n", input_image_padded[i*(cols+2) + j]);
+//     }
+//   }
+//   // actual convolution
+//   float* filtered_image = (float*)malloc(sizeof(float)*(rows*cols));
+//   float patch[m*n];
+//   for(i = 0; i < rows; i++){
+//     for(j = 0; j < cols; j++){
+//       y = 0;
+//       for(a = 0; a < 3; a++)
+//         for(b = 0; b < 3; b++){
+//           // printf("%f\n", input_image[(i+a)*(cols) + j + b]);
+//           patch[y] = input_image_padded[(i+a)*(cols) + j + b];
+//           y++;
+//         }
+//       float* matrixmult = matrixIndexMultiplier(patch, weight, 3, 3, 3, 3);
+//       filtered_image[index] = sum(matrixmult, 9);
+//       index++;
+//       free(matrixmult);
+//       z++;
+//     }
+//   }
+//   return filtered_image;
+// }
+
 // assuming the weights are going to be 3x3 filters
-float* conv_layer(float* input_image, float* weight, int rows, int cols){
+// 3d to 1d indexing: Flat[x + WIDTH * (y + DEPTH * z)] = Original[x, y, z]
+float* conv_layer(float* input_image, float* weight, int rows, int cols, int depth){
   int m = rows - 2;
   int n = cols - 2;
-  int i, j, a, b;
+  int d = depth - 2;
+  int i, j, k, a, b, c;
   int y = 0;
   int z = 0;
   int index = 0;
+
   // this is my IMPLEMENTATION of zero-padding
-  float input_image_padded[(rows+2)*(cols+2)];
+  float input_image_padded[(rows+2)*(cols+2)*(depth+2)];
   for(i = 0; i < (rows + 2); i++){
     for(j = 0; j < (cols + 2); j++){
-      if(i > 0 && i < rows + 1 && j > 0 && j < cols + 1)
-        input_image_padded[i*(cols+2) + j]  = input_image[(i-1)*cols + (j-1)];
-      else
-        input_image_padded[i*(cols+2) + j] = 0;
-      printf("padded : %f\n", input_image_padded[i*(cols+2) + j]);
+      for(k = 0; k < (depth + 2); k++){
+        if(i > 0 && i < rows + 1 && j > 0 && j < cols + 1 && k > 0 && k < depth + 1){
+          input_image_padded[i + (rows * (j + (depth * k)))] = input_image[(i - 1) + (rows * ((j - 1) + (depth * (k - 1))))];
+        }
+        else{
+          input_image_padded[i + (rows * (j + (depth * k)))] = 0;
+        }
+        printf("padded : %f\n", input_image_padded[i + (rows * (j + (depth * k)))]);
+      }
     }
   }
+
   // actual convolution
-  float* filtered_image = (float*)malloc(sizeof(float)*(rows*cols));
-  float patch[m*n];
+  float* filtered_image = (float*)malloc(sizeof(float)*(rows*cols*depth));
+  float patch[m*n*d];
+
   for(i = 0; i < rows; i++){
     for(j = 0; j < cols; j++){
-      y = 0;
-      for(a = 0; a < 3; a++)
-        for(b = 0; b < 3; b++){
-          // printf("%f\n", input_image[(i+a)*(cols) + j + b]);
-          patch[y] = input_image_padded[(i+a)*(cols) + j + b];
-          y++;
+      for(k = 0; k < depth; k++){
+        y = 0;
+        for(a = 0; a < 3; a++){
+          for(b = 0; b < 3; b++){
+            for(c = 0; c < depth; c++){
+              patch[y] = input_image_padded[(i+a) + (rows * ((j+b) + (depth * (k+c))))];
+              y++;
+            }
+          }
         }
-      float* matrixmult = matrixIndexMultiplier(patch, weight, 3, 3, 3, 3);
-      filtered_image[index] = sum(matrixmult, 9);
-      index++;
-      free(matrixmult);
-      z++;
+        float* matrixmult = matrixIndexMultiplier(patch, weight, 3, 3, 3, 3, depth);
+        filtered_image[index] = sum(matrixmult, 27);
+        index++;
+        free(matrixmult);
+        z++;
+      }
     }
   }
+
   return filtered_image;
 }
+
+
+
+
+
+
+
+
 
 // ReLU to introduce non linearity after convolutional layer
 // this should  be  a simple single for loop:
