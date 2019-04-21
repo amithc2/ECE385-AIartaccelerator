@@ -6,12 +6,52 @@
 
 
 
-// GARBAGE MULTIPLE PLS DELETE
-float* multiply(float* a, float* b, int h1, int w1, int h2, int w2){
-  float* result = (float*)malloc(sizeof(float)*(w1*h2));
-  for(int j = 0; j < w1*h2; j++){
-    result[0] = 0.0;
+// matrixMultiplier
+float* matrixMultiplier(float* matrix1, float* matrix2, int h1, int w1, int h2, int w2){
+
+  // declarations
+  int i, j, k;
+  float sum;
+  sum = 0;
+  // num columns of first matrix must equal num rows of second matrix
+  if(w1 != h2){
+    return NULL;
   }
+  // result will have same num rows as first matrix, same num columns as second
+  float* result = (float*)malloc(sizeof(float)*(h1*w2));
+
+  // multiply matrices
+  for(i = 0; i < h1; i++){
+    for(j = 0; j < w2; j++){
+      for(k = 0; k < h2; k++){
+        sum = sum + matrix1[(i*w1)+k]*matrix2[(k*w2)+j];
+      }
+      //printf("%f ", sum);
+      result[i*w2+j] = sum;
+      sum = 0;
+    }
+  }
+
+  return result;
+}
+float* matrixIndexMultiplier(float* matrix1, float* matrix2, int h1, int w1, int h2, int w2){
+
+  // declarations
+  int i, j, k;
+  // num columns of first matrix must equal num rows of second matrix
+  if(w1 != h2){
+    return NULL;
+  }
+  // result will have same num rows as first matrix, same num columns as second
+  float* result = (float*)malloc(sizeof(float)*(h1*w2));
+
+  // multiply matrices
+  for(i = 0; i < h1; i++){
+    for(j = 0; j < w2; j++){
+      result[i*w2 + j] = matrix1[i*w2 + j]*matrix2[i*w2 + j];
+    }
+  }
+
   return result;
 }
 // HELPER FUNCTIONS FOR  VGG16
@@ -58,18 +98,41 @@ float* preprocess(float* im){
   }
 */
 // assuming the weights are going to be 3x3 filters
-float* conv_layer(float* input_image, float* weight, int h, int w){
-  int m = w - 2;
-  int n = h - 2;
+float* conv_layer(float* input_image, float* weight, int rows, int cols){
+  int m = rows - 2;
+  int n = cols - 2;
   int i, j, a, b;
-  float* filtered_image = (float*)malloc(sizeof(float)*(m*n));
+  int y = 0;
+  int z = 0;
+  int index = 0;
+  // this is my IMPLEMENTATION of zero-padding
+  float input_image_padded[(rows+2)*(cols+2)];
+  for(i = 0; i < (rows + 2); i++){
+    for(j = 0; j < (cols + 2); j++){
+      if(i > 0 && i < rows + 1 && j > 0 && j < cols + 1)
+        input_image_padded[i*(cols+2) + j]  = input_image[(i-1)*cols + (j-1)];
+      else
+        input_image_padded[i*(cols+2) + j] = 0;
+      printf("padded : %f\n", input_image_padded[i*(cols+2) + j]);
+    }
+  }
+  // actual convolution
+  float* filtered_image = (float*)malloc(sizeof(float)*(rows*cols));
   float patch[m*n];
-  for(i = 0; i < m; i++){
-    for(j = 0; j < n; j++){
+  for(i = 0; i < rows; i++){
+    for(j = 0; j < cols; j++){
+      y = 0;
       for(a = 0; a < 3; a++)
-        for(b = 0; b < 3; b++)
-          patch[i*(m+a) + j + b] = input_image[i*(m+a) + j*b];
-      filtered_image[i*m + j] = sum(multiply(patch, weight, h, w, 3, 3), 9);
+        for(b = 0; b < 3; b++){
+          // printf("%f\n", input_image[(i+a)*(cols) + j + b]);
+          patch[y] = input_image_padded[(i+a)*(cols) + j + b];
+          y++;
+        }
+      float* matrixmult = matrixIndexMultiplier(patch, weight, 3, 3, 3, 3);
+      filtered_image[index] = sum(matrixmult, 9);
+      index++;
+      free(matrixmult);
+      z++;
     }
   }
   return filtered_image;
@@ -105,6 +168,28 @@ void relu(float* x, int size){
     }
   }
 */
+float* maxpool(float* x, int stride, int rows, int cols){
+  float* result = (float*)malloc(sizeof(float)*((rows*cols)/stride));
+  float curr_max = x[0];
+  int m = rows - 1;
+  int n = cols - 1;
+  int y = 0;
+  for(int i = 0; i < rows; i+=2){
+    for(int j = 0; j < cols; j+=2){
+      float curr_max = x[i*cols + j];
+      for(int a = 0; a < 2; a++){
+        for(int b = 0; b < 2; b++){
+          //printf("%f\n", x[(i+a)*(cols) + j + b]);
+          if(curr_max < x[(i+a)*(cols) + j + b])
+            curr_max = x[(i+a)*(cols) + j + b];
+        }
+      }
+      result[y] = curr_max;
+      y++;
+    }
+  }
+  return result;
+}
 
 // softmax : this is used in the last layer for vgg16
 // Here is some psuedo code:
@@ -139,14 +224,45 @@ int main(){
   relu(test, 4);
   for(int i=0; i < 4; i++)
     printf("%f\n", test[i]);
+
   // test for sum helper function
   float test_sum = sum(test, 4);
   printf("(%f)\n", test_sum);
+
   // test for softmax
   float softmax_test[6] = { 8, 14, 16,  8, 14,  1};
   float* softmax_result_test = softmax(softmax_test, 6);
   for(int i=0; i < 6; i++)
     printf("%f\n", softmax_result_test[i]);
   free(softmax_result_test);
+
+  //test for maxpool function
+  printf("maxpool test\n");
+  float maxpool_test[36] = {1, 4, 4, 1, 2, 2,
+                            0, 4, 1, 2, 4, 2,
+                            3, 1, 0, 3, 3, 0,
+                            2, 0, 3, 1, 3, 4,
+                            0, 0, 4, 0, 1, 1,
+                            2, 0, 3, 1, 2, 1};
+  float* maxpool_result_test = maxpool(maxpool_test, 2, 6, 6);
+  for(int i = 0; i < 9; i++)
+    printf("result: %f\n", maxpool_result_test[i]);
+  free(maxpool_result_test);
+
+  // test for conv_layer
+  printf("conv layer test\n");
+  float test_conv_layer[5*5] = {3, 3, 2, 1, 0,
+                                0, 0, 1, 3, 1,
+                                3, 1, 2, 2, 3,
+                                2, 0, 0, 2, 2,
+                                2, 0, 0, 0, 1};
+  float test_conv_weight[3*3] = {0, 1, 2,
+                                 2, 2, 0,
+                                 0, 1, 2};
+  float* conv_layer_test = conv_layer(test_conv_layer, test_conv_weight, 5, 5);
+  for(int i = 0; i < 25; i++)
+    printf("result: %f\n", conv_layer_test[i]);
+  free(conv_layer_test);
+
   return 0;
 }
