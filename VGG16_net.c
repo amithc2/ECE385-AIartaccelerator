@@ -4,6 +4,20 @@
 
 // IMPLEMENTATION OF VGG16 IN C:
 
+// Dense Layer
+float* denseLayer(float* input, float* weight, float* bias, int h1, int w1, int h2, int w2){
+  int i, j;
+  int size;
+  float* matMul;
+
+  matMul = matrixMultiplier(input, weight, h1, w1, h2, w2);
+  for(i = 0; i < h1; i++){
+    for(j = 0; j < w2; j++){
+      matMul[(w2*i)+j] = matMul[(w2*i)+j] + bias[j];
+    }
+  }
+  return matMul;
+}
 
 
 // matrixMultiplier
