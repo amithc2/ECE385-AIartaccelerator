@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
- #include <unistd.h>
+#include <math.h>
+
 // IMPLEMENTATION OF VGG16 IN C:
 
 
@@ -115,9 +116,21 @@ void relu(float* x, int size){
       softmax_result[i] = expf(x[i]);
       softmax_sum+=softmax_result[i];
     }
+    then divide
   }
 */
-
+float* softmax(float* x, int size){
+  float softmax_sum = 0.0;
+  float* softmax_result = malloc(sizeof(x)*size);
+  for(int i = 0; i < size; i++){
+    softmax_result[i] = expf(x[i]);
+    softmax_sum += softmax_result[i];
+  }
+  for(int i = 0; i < size; i++){
+    softmax_result[i] /= softmax_sum;
+  }
+  return softmax_result;
+}
 
 // MAIN FUNCTION IS BEING USED SIMPLY FOR TESTING PLEASE REMOVE LATER:
 int main(){
@@ -130,7 +143,10 @@ int main(){
   float test_sum = sum(test, 4);
   printf("(%f)\n", test_sum);
   // test for softmax
-
+  float softmax_test[6] = { 8, 14, 16,  8, 14,  1};
+  float* softmax_result_test = softmax(softmax_test, 6);
+  for(int i=0; i < 6; i++)
+    printf("%f\n", softmax_result_test[i]);
 
   return 0;
 }
