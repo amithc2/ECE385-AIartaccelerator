@@ -147,6 +147,6 @@ int main(){
   float* softmax_result_test = softmax(softmax_test, 6);
   for(int i=0; i < 6; i++)
     printf("%f\n", softmax_result_test[i]);
-
+  free(softmax_result_test);
   return 0;
 }
