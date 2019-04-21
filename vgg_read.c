@@ -123,7 +123,7 @@ float* createGramMatrix(float* tensor, int h, int w, int d){
 	float transpose[h*w*d];
 	// have to malloc result, make sure to delete in style layer function
 	int rows = h*w;
-	float* result = (float*)malloc(sizeof(float)*(h*w*d));
+	float* result = (float*)malloc(sizeof(float)*(rows*rows));
 
 	int i, j, k;
 	// cols == d
@@ -134,14 +134,17 @@ float* createGramMatrix(float* tensor, int h, int w, int d){
 	}
 
 	// multiply the 2D tensors and store result (THIS IS CURRENTLY CAUSING SEGFAULT)
-	// for(i = 0; i < rows; i++){
-	// 	for(j = 0; j < rows; j++){
-	// 		result[rows*i + j] = 0;
-	// 		for(k = 0; k < d; k++){
-	// 			result[rows*i + j] += tensor[d*i + k] * transpose[rows*k + j];
-	// 		}
-	// 	}
-	// }
+	for(i = 0; i < rows; i++){
+		for(j = 0; j < rows; j++){
+			// if(rows*i + j < rows*rows)
+				result[rows*i + j] = 0;
+			// result[rows*i + j] = 0;
+			// for(k = 0; k < d; k++){
+			// 	result[rows*i + j] = 0;
+			// 	result[rows*i + j] += tensor[d*i + k] * transpose[rows*k + j];
+			// }
+		}
+	}
 
 	//return result
 	return result;
@@ -181,13 +184,38 @@ float createStyleLoss(struct vgg16* layers){
 
 }
 
+float stdev(float* tensor){
+	size_t size = sizeof(tensor)/sizeof(float);
+	float mean = 0;
+	float mean_diff = 0;
+	for(size_t i = 0; i < size; i++){
+		mean += tensor[i];
+	}
+	mean /= (int)size;
+	for(size_t i = 0; i < size; i++){
+		mean_diff += (mean - tensor[i])*(mean - tensor[i]);
+	}
+	return (float)Math.sqrt(mean_diff);
+}
+
+styleTransfer((struct vgg16) content, (struct vgg16) style, (float) contentWeight,
+	(float) styleWeight, (float) denoiseWeight, (float) stepSize, (int) iterations){
+	int i;
+	for(i = 0; i < iterations; i++){
+		// figure out how to implement np.squeeze() in C
+
+		// call standard deviation function
+		// scaled_step = stepSize/ std(grad)
+	}
+}
+
 int main(){
 	struct vgg16* styles = makeLayers("stylelayer.txt", "stylevalue.txt", 13);
 	struct vgg16* content = makeLayers("contentlayer.txt", "contentlayer.txt", 1);
 	printf("The float value returned by createContentLoss: %f\n", createContentLoss(content));
 	float* gram = createGramMatrix(styles[0].layer_tensor, styles[0].h, styles[0].w, styles[0].d);
-	for(size_t i = 0; i < styles[0].h*styles[0].d*styles[0].w; i++)
-		printf("The gram matrix: %f\n", gram[i]);
+	// for(size_t i = 0; i < styles[0].h*styles[0].d*styles[0].w; i++)
+	// 	printf("The gram matrix: %f\n", gram[i]);
 	free(gram);
 	deleteLayers(styles, 13);
 	deleteLayers(content, 1);
