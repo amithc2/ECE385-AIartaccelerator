@@ -185,7 +185,6 @@ def style_transfer(content_image, style_image,
 
     # tensorflow operation to generate gradient for weighted loss function from model input image
     gradient = tf.gradients(loss_combined, model.input)
-
     # list of tensor for tensor flow session that we will run in each slow optimization iteration :(
     run_tensors = [gradient, update_content_adj, update_style_adj, \
                 update_denoise_adj]
@@ -198,7 +197,6 @@ def style_transfer(content_image, style_image,
 
         grad, content_adjusted, style_adjusted, denoise_adjusted \
         = session.run(run_tensors, feed_dict = feed_dict)
-
         grad = np.squeeze(grad)
 
         #scale step size based on gradient
