@@ -215,47 +215,47 @@ with open('convlayer5_3.txt', 'w') as outfile:
         outfile.write("%f\n " % convBias[i])
 outfile.close()
 
-with open('fc6.txt', 'w') as outfile:
-    fcTensor = weights[keys[26]]
-    fcBias = weights[keys[27]]
-    print(np.shape(fcTensor))
-    outfile.write('# Weight matrix shape: {0}\n'.format(fcTensor.shape))
-    fcLayer = np.split(fcTensor, 4096, axis = 1)
-    for dataSlice in fcLayer:
-        for dataminiSlice in dataSlice:
-            np.savetxt(outfile, dataminiSlice, fmt='%-7.2f', newline = " ")
-        outfile.write('# New filter\n')
-    outfile.write('# Bias matrix shape: {0}\n'.format(fcBias.shape))
-    for i in range(4096):
-        outfile.write("%f\n " % fcBias[i])
-outfile.close()
-
-with open('fc7.txt', 'w') as outfile:
-    fcTensor = weights[keys[28]]
-    fcBias = weights[keys[29]]
-    print(np.shape(fcTensor))
-    outfile.write('# Weight matrix shape: {0}\n'.format(fcTensor.shape))
-    fcLayer = np.split(fcTensor, 4096, axis = 1)
-    for dataSlice in fcLayer:
-        for dataminiSlice in dataSlice:
-            np.savetxt(outfile, dataminiSlice, fmt='%-7.2f',newline = " ")
-        outfile.write('# New filter\n')
-    outfile.write('# Bias matrix shape: {0}\n'.format(fcBias.shape))
-    for i in range(4096):
-        outfile.write("%f\n " % fcBias[i])
-outfile.close()
-
-with open('fc8.txt', 'w') as outfile:
-    fcTensor = weights[keys[30]]
-    fcBias = weights[keys[31]]
-    print(np.shape(fcTensor))
-    outfile.write('# Weight matrix shape: {0}\n'.format(fcTensor.shape))
-    fcLayer = np.split(fcTensor, 1000, axis = 1)
-    for dataSlice in fcLayer:
-        for dataminiSlice in dataSlice:
-            np.savetxt(outfile, dataminiSlice, fmt='%-7.2f', newline = " ")
-        outfile.write('# New filter\n')
-    outfile.write('# Bias matrix shape: {0}\n'.format(fcBias.shape))
-    for i in range(1000):
-        outfile.write("%f\n " % fcBias[i])
-outfile.close()
+# with open('fc6.txt', 'w') as outfile:
+#     fcTensor = weights[keys[26]]
+#     fcBias = weights[keys[27]]
+#     print(np.shape(fcTensor))
+#     outfile.write('# Weight matrix shape: {0}\n'.format(fcTensor.shape))
+#     fcLayer = np.split(fcTensor, 4096, axis = 1)
+#     for dataSlice in fcLayer:
+#         for dataminiSlice in dataSlice:
+#             np.savetxt(outfile, dataminiSlice, fmt='%-7.2f', newline = " ")
+#         outfile.write('# New filter\n')
+#     outfile.write('# Bias matrix shape: {0}\n'.format(fcBias.shape))
+#     for i in range(4096):
+#         outfile.write("%f\n " % fcBias[i])
+# outfile.close()
+#
+# with open('fc7.txt', 'w') as outfile:
+#     fcTensor = weights[keys[28]]
+#     fcBias = weights[keys[29]]
+#     print(np.shape(fcTensor))
+#     outfile.write('# Weight matrix shape: {0}\n'.format(fcTensor.shape))
+#     fcLayer = np.split(fcTensor, 4096, axis = 1)
+#     for dataSlice in fcLayer:
+#         for dataminiSlice in dataSlice:
+#             np.savetxt(outfile, dataminiSlice, fmt='%-7.2f',newline = " ")
+#         outfile.write('# New filter\n')
+#     outfile.write('# Bias matrix shape: {0}\n'.format(fcBias.shape))
+#     for i in range(4096):
+#         outfile.write("%f\n " % fcBias[i])
+# outfile.close()
+#
+# with open('fc8.txt', 'w') as outfile:
+#     fcTensor = weights[keys[30]]
+#     fcBias = weights[keys[31]]
+#     print(np.shape(fcTensor))
+#     outfile.write('# Weight matrix shape: {0}\n'.format(fcTensor.shape))
+#     fcLayer = np.split(fcTensor, 1000, axis = 1)
+#     for dataSlice in fcLayer:
+#         for dataminiSlice in dataSlice:
+#             np.savetxt(outfile, dataminiSlice, fmt='%-7.2f', newline = " ")
+#         outfile.write('# New filter\n')
+#     outfile.write('# Bias matrix shape: {0}\n'.format(fcBias.shape))
+#     for i in range(1000):
+#         outfile.write("%f\n " % fcBias[i])
+# outfile.close()
