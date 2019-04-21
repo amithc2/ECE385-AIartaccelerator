@@ -1,13 +1,41 @@
+#include <stdio.h>
+#include <stdlib.h>
+ #include <unistd.h>
 // IMPLEMENTATION OF VGG16 IN C:
 
 
+
+// GARBAGE MULTIPLE PLS DELETE
+float* multiply(float* a, float* b, int h1, int w1, int h2, int w2){
+  float* result = (float*)malloc(sizeof(float)*(w1*h2));
+  for(int j = 0; j < w1*h2; j++){
+    result[0] = 0.0;
+  }
+  return result;
+}
+// HELPER FUNCTIONS FOR  VGG16
+// sums up all the indicies in a matrix
+// used for convolution kernels
+float sum(float* input, int size){
+  float sum = 0.0;
+  unsigned i;
+  for(i = 0; i < size; i++){
+    sum += input[i];
+  }
+  return sum;
+}
 // this will be the pre processing function for vgg
 // resize the image to 224x224
 // vgg_mean computed from the training set to preprocess images
 // vgg_mean= array value of : [123.68, 116.779, 103.939] in numpy this is float data type
 // subtract each pixel in the image by the vgg_mean
 // next  convert  RGB  to  BGR by right shifting
-
+float* preprocess(float* im){
+  // RGB2BGR macro
+  // Resize image
+  // subtract vgg mean
+  return NULL;
+}
 
 // here is the general description of the stack of conv layers
 // all conv layers are  3x3 in  the vgg16 framework
@@ -28,6 +56,23 @@
     return new_image;
   }
 */
+// assuming the weights are going to be 3x3 filters
+float* conv_layer(float* input_image, float* weight, int h, int w){
+  int m = w - 2;
+  int n = h - 2;
+  int i, j, a, b;
+  float* filtered_image = (float*)malloc(sizeof(float)*(m*n));
+  float patch[m*n];
+  for(i = 0; i < m; i++){
+    for(j = 0; j < n; j++){
+      for(a = 0; a < 3; a++)
+        for(b = 0; b < 3; b++)
+          patch[i*(m+a) + j + b] = input_image[i*(m+a) + j*b];
+      filtered_image[i*m + j] = sum(multiply(patch, weight, h, w, 3, 3), 9);
+    }
+  }
+  return filtered_image;
+}
 
 // ReLU to introduce non linearity after convolutional layer
 // this should  be  a simple single for loop:
@@ -40,7 +85,11 @@
     }
   }
 */
-
+void relu(float* x, int size){
+  for(int i = 0; i < size; i++)
+    if(x[i] < 0)
+      x[i] = 0.0;
+}
 
 // you might think we should use average pooling instead of max pooling for this use
 // and you are absolutely  right, but we just didn't do it here because of time constraints on
@@ -69,4 +118,19 @@
   }
 */
 
+
 // MAIN FUNCTION IS BEING USED SIMPLY FOR TESTING PLEASE REMOVE LATER:
+int main(){
+  //  test for relu helper function
+  float test[4] = {-.54, 54.6, 67.3, -.34};
+  relu(test, 4);
+  for(int i=0; i < 4; i++)
+    printf("%f\n", test[i]);
+  // test for sum helper function
+  float test_sum = sum(test, 4);
+  printf("(%f)\n", test_sum);
+  // test for softmax
+
+
+  return 0;
+}
