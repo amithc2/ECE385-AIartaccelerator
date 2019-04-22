@@ -430,17 +430,17 @@ void createVGG16(){
     layerWeight = weights[0];
     layerBias = weights[1];
     k = 0;
-    for(j = filterIndex; j < filterIndex + 27; j++){
+    for(j = filterIndex; j < filterIndex + 576; j++){
       convKernel[k] = layerWeight[j];
       k++;
     }
     currFeatureMap = convFilter(featureMap, convKernel, layerBias[i], 224, 224, 64, 1);
     for(m = 0; m < 224*224; m++){
-      featureMap[n] = currFeatureMap[m];
+      newFeatureMap[n] = currFeatureMap[m];
       n++;
     }
     free(currFeatureMap);
-    filterIndex = filterIndex + 27;
+    filterIndex = filterIndex + 576;
   }
   free(featureMap);
   free(weights[0]);
@@ -457,9 +457,9 @@ void createVGG16(){
   // Block 1
   filterIndex = 0;
   n = 0;
-  newFeatureMap = (float*)malloc(sizeof(float)*224*224*64);
-  weights = getWeights("convlayer1_2.txt");
-    for(i = 0; i < 64; i++){
+  featureMap = (float*)malloc(sizeof(float)*112*112*128);
+  weights = getWeights("convlayer2_1.txt");
+    for(i = 0; i < 128; i++){
       layerWeight = weights[0];
       layerBias = weights[1];
       k = 0;
@@ -467,7 +467,7 @@ void createVGG16(){
         convKernel[k] = layerWeight[j];
         k++;
       }
-      currFeatureMap = convFilter(featureMap, convKernel, layerBias[i], 224, 224, 64, 1);
+      currFeatureMap = convFilter(featureMap, convKernel, layerBias[i], 112, 112, 64, 1);
       for(m = 0; m < 224*224; m++){
         featureMap[n] = currFeatureMap[m];
         n++;
