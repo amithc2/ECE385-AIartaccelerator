@@ -435,13 +435,19 @@ int main(){
 
   //test for maxpool function
   printf("maxpool test\n");
-  float maxpool_test[36] = {1, 4, 4, 1, 2, 2,
+  float maxpool_test[36*2] = {1, 4, 4, 1, 2, 2,
+                            0, 4, 1, 2, 4, 2,
+                            3, 1, 0, 3, 3, 0,
+                            2, 0, 3, 1, 3, 4,
+                            0, 0, 4, 0, 1, 1,
+                            2, 0, 3, 1, 2, 1,
+                            1, 4, 4, 1, 2, 2,
                             0, 4, 1, 2, 4, 2,
                             3, 1, 0, 3, 3, 0,
                             2, 0, 3, 1, 3, 4,
                             0, 0, 4, 0, 1, 1,
                             2, 0, 3, 1, 2, 1};
-  float* maxpool_result_test = maxpool(maxpool_test, 2, 6, 6, 1);
+  float* maxpool_result_test = maxpool(maxpool_test, 2, 6, 6, 2);
   for(int i = 0; i < 9; i++)
     printf("result: %f\n", maxpool_result_test[i]);
   free(maxpool_result_test);
