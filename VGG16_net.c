@@ -214,7 +214,7 @@ float* conv_layer(float* input_image, float* weight, float bias, int rows, int c
 
   float patch[m*n*3];
 
-  for(k = 0; k < depth - 2; k++){
+  for(k = 0; k < 1; k++){
     for(i = 0; i < rows; i+=2){
       for(j = 0; j < cols; j+=2){
         y = 0;
@@ -225,7 +225,7 @@ float* conv_layer(float* input_image, float* weight, float bias, int rows, int c
             // printf("new patch dim\n" );
           for(a = 0; a < 3; a++){
             for(b = 0; b < 3; b++){
-              int testmeme = j+b + (i+a)*(cols+2) + (k+c)*(rows+2)*(cols+2);
+              // int testmeme = j+b + (i+a)*(cols+2) + (k+c)*(rows+2)*(cols+2);
               // printf("patchy : %d b : %d j : %d i: %d a : %d c : %d testmeme : %d\n", y, b, j, i, a, c, testmeme);
               // printf(" input padded : %f\n",input_image_padded[2] );
               patch[y] = input_image_padded[j+b + (i+a)*(cols+2) + (k+c)*(rows+2)*(cols+2)];
@@ -276,24 +276,28 @@ void relu(float* x, int size){
     }
   }
 */
-float* maxpool(float* x, int stride, int rows, int cols){
-  float* result = (float*)malloc(sizeof(float)*((rows*cols)/stride));
+float* maxpool(float* x, int stride, int rows, int cols, int depth){
+  float* result = (float*)malloc(sizeof(float)*(depth*(rows*cols)/stride));
   float curr_max = x[0];
   int m = rows - 1;
   int n = cols - 1;
   int y = 0;
-  for(int i = 0; i < rows; i+=stride){
-    for(int j = 0; j < cols; j+=stride){
-      float curr_max = x[i*cols + j];
-      for(int a = 0; a < 2; a++){
-        for(int b = 0; b < 2; b++){
-          //printf("%f\n", x[(i+a)*(cols) + j + b]);
-          if(curr_max < x[(i+a)*(cols) + j + b])
-            curr_max = x[(i+a)*(cols) + j + b];
+  for(int k = 0; k < 1; k++){
+    for(int i = 0; i < rows; i+=stride){
+      for(int j = 0; j < cols; j+=stride){
+        float curr_max = x[i*cols + j];
+        for(int c = 0; c < depth; c++){
+          for(int a = 0; a < 2; a++){
+            for(int b = 0; b < 2; b++){
+              //printf("%f\n", x[(i+a)*(cols) + j + b]);
+              if(curr_max < x[j+b + (i+a)*cols + (k+c)*rows*cols])
+                curr_max = x[j+b + (i+a)*cols + (k+c)*rows*cols];
+            }
+          }
         }
+        result[y] = curr_max;
+        y++;
       }
-      result[y] = curr_max;
-      y++;
     }
   }
   return result;
@@ -352,7 +356,7 @@ int main(){
                             2, 0, 3, 1, 3, 4,
                             0, 0, 4, 0, 1, 1,
                             2, 0, 3, 1, 2, 1};
-  float* maxpool_result_test = maxpool(maxpool_test, 2, 6, 6);
+  float* maxpool_result_test = maxpool(maxpool_test, 2, 6, 6, 1);
   for(int i = 0; i < 9; i++)
     printf("result: %f\n", maxpool_result_test[i]);
   free(maxpool_result_test);
