@@ -258,7 +258,7 @@ float* convFilter(float* input_image, float* weight, float bias, int rows, int c
   }
 
   // actual convolution
-  float* filtered_image = (float*)malloc(sizeof(float)*(rows*cols*depth));
+  float* filtered_image = (float*)malloc(sizeof(float)*(rows*cols));
 
   float patch[m*n*3];
 
