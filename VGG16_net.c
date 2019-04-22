@@ -177,7 +177,7 @@ float* preprocess(float* im){
 
 // assuming the weights are going to be 3x3 filters
 // 3d to 1d indexing: Flat[x + WIDTH * (y + DEPTH * z)] = Original[x, y, z]
-float* conv_layer(float* input_image, float* weight, int rows, int cols, int depth){
+float* conv_layer(float* input_image, float* weight, float bias, int rows, int cols, int depth){
   // variable declarations
   int m = rows - 2;
   int n = cols - 2;
@@ -208,8 +208,8 @@ float* conv_layer(float* input_image, float* weight, int rows, int cols, int dep
 
   float patch[m*n*d];
 
-  for(i = 0; i < rows; i++){
-    for(j = 0; j < cols; j++){
+  for(i = 0; i < rows; i+=2){
+    for(j = 0; j < cols; j+=2){
       for(k = 0; k < depth; k++){
         y = 0;
         // our filter is 3x3xdepth since the depth of our filter and the input
@@ -223,7 +223,7 @@ float* conv_layer(float* input_image, float* weight, int rows, int cols, int dep
           }
         }
         float* matrixmult = matrixIndexMultiplier(patch, weight, 3, 3, 3, 3, depth);
-        filtered_image[index] = sum(matrixmult, 3*3*depth);
+        filtered_image[index] = sum(matrixmult, 3*3*depth) + bias;
         index++;
         free(matrixmult);
         z++;
@@ -270,8 +270,8 @@ float* maxpool(float* x, int stride, int rows, int cols){
   int m = rows - 1;
   int n = cols - 1;
   int y = 0;
-  for(int i = 0; i < rows; i+=2){
-    for(int j = 0; j < cols; j+=2){
+  for(int i = 0; i < rows; i+=stride){
+    for(int j = 0; j < cols; j+=stride){
       float curr_max = x[i*cols + j];
       for(int a = 0; a < 2; a++){
         for(int b = 0; b < 2; b++){
@@ -347,16 +347,33 @@ int main(){
 
   // test for conv_layer
   printf("conv layer test\n");
-  float test_conv_layer[5*5] = {3, 3, 2, 1, 0,
-                                0, 0, 1, 3, 1,
-                                3, 1, 2, 2, 3,
-                                2, 0, 0, 2, 2,
-                                2, 0, 0, 0, 1};
-  float test_conv_weight[3*3] = {0, 1, 2,
-                                 2, 2, 0,
-                                 0, 1, 2};
-  float* conv_layer_test = conv_layer(test_conv_layer, test_conv_weight, 5, 5);
-  for(int i = 0; i < 25; i++)
+  float test_conv_layer[5*5*3] = {0, 0, 1, 0, 2,
+                                  1, 0, 2, 0, 1,
+                                  1, 0, 2, 2, 0,
+                                  2, 0, 0, 2, 0,
+                                  2, 1, 2, 2, 0,
+                                  2, 1, 2, 1, 1,
+                                  2, 1, 2, 0, 1,
+                                  0, 2, 1, 0, 1,
+                                  1, 2, 2, 2, 2,
+                                  0, 1, 2, 0, 1,
+                                  2, 1, 1, 2, 0,
+                                  1, 0, 0, 1, 0,
+                                  0, 1, 0, 0, 0,
+                                  1, 0, 2, 1, 0,
+                                  2, 2, 1, 1, 1};
+  float test_conv_weight[3*3*3] = {-1, 0, 1,
+                                   0, 0, 1,
+                                   1, -1, 1,
+                                   -1, 0, 1,
+                                   1, -1, 1,
+                                   0, 1, 0,
+                                   -1, 1, 1,
+                                   1, 1, 0,
+                                   0, -1, 0};
+  float test_bias = 1.0;
+  float* conv_layer_test = conv_layer(test_conv_layer, test_conv_weight, test_bias, 5, 5, 3);
+  for(int i = 0; i < 9; i++)
     printf("result: %f\n", conv_layer_test[i]);
   free(conv_layer_test);
 
