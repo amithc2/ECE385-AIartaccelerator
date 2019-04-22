@@ -19,6 +19,54 @@
 // }
 
 
+float** getWeights(char* layerFile){
+  // variable declarations
+
+  FILE* weightsFile;
+  float* getLayer;
+  float* getBias;
+  float** LayerBias;
+  float val;
+  int dimVal1, dimVal2, dimVal3, dimVal4;
+  int i, length;
+
+  // return both the getLayer and getBias pointers in an array
+  LayerBias = (float**)malloc(sizeof(float*)*2);
+  // open the desired file
+  if((weightsFile = fopen(layerFile, "r")) == NULL){
+    printf("Content file not found!");
+    return NULL;
+  }
+  // get the dimensions of the 3d kernel
+  fscanf(weightsFile, "%d", &dimVal1);
+  fscanf(weightsFile, "%d", &dimVal2);
+  fscanf(weightsFile, "%d", &dimVal3);
+  fscanf(weightsFile, "%d", &dimVal4);
+
+
+  length = dimVal1*dimVal2*dimVal3*dimVal4;
+  getLayer = (float*)malloc(sizeof(float)*length);
+
+  for(i = 0; i < length; i++){
+    fscanf(weightsFile, "%f", &val);
+    getLayer[i] = val;
+  }
+
+  LayerBias[0] = getLayer;
+
+  // get length of 1d bias matrix
+  fscanf(weightsFile, "%d", &length);
+  getBias = (float*)malloc(sizeof(float)*length);
+
+  for(i = 0; i < length; i++){
+    fscanf(weightsFile, "%f", &val);
+    getBias[i] = val;
+  }
+  // return array
+  LayerBias[1] = getBias;
+  return LayerBias;
+}
+
 // matrixMultiplier
 float* matrixMultiplier(float* matrix1, float* matrix2, int h1, int w1, int h2, int w2){
 
@@ -178,7 +226,7 @@ float* preprocess(float* im){
 
 // assuming the weights are going to be 3x3 filters
 // 3d to 1d indexing: Flat[x + WIDTH * (y + DEPTH * z)] = Original[x, y, z]
-float* conv_layer(float* input_image, float* weight, float bias, int rows, int cols, int depth){
+float* convFilter(float* input_image, float* weight, float bias, int rows, int cols, int depth){
   // variable declarations
   int m = rows - 2;
   int n = cols - 2;
@@ -328,6 +376,43 @@ float* softmax(float* x, int size){
   }
   return softmax_result;
 }
+
+void createVGG16(){
+  float* preprocessedImage;
+  float** layerAndBias;
+  // preprocessing done in python script
+  preprocess();
+
+  // First convolution layer
+  layerAndBias = getWeights("convlayer1_1.txt");
+
+  float* convFilter(float* input_image, float* weight, float bias, int rows, int cols, int depth)
+
+
+
+
+  getWeights("convlayer1_2.txt");
+  maxpool();
+  getWeights("convlayer2_1.txt");
+  getWeights("convlayer2_2.txt");
+  maxpool();
+  getWeights("convlayer3_1.txt");
+  getWeights("convlayer3_2.txt");
+  getWeights("convlayer3_3.txt");
+  maxpool();
+  getWeights("convlayer4_1.txt");
+  getWeights("convlayer4_2.txt");
+  getWeights("convlayer4_3.txt");
+  maxpool();
+  getWeights("convlayer5_1.txt");
+  getWeights("convlayer5_2.txt");
+  getWeights("convlayer5_3.txt");
+  maxpool();
+
+}
+
+
+
 
 // MAIN FUNCTION IS BEING USED SIMPLY FOR TESTING PLEASE REMOVE LATER:
 int main(){
