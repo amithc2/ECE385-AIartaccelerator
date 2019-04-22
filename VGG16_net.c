@@ -378,15 +378,40 @@ float* softmax(float* x, int size){
 }
 
 void createVGG16(){
-  float* preprocessedImage;
-  float** layerAndBias;
+  float* inputImage;
+  float* prevImage;
+  float** weights;
+  float* layerWeight;
+  float* layerBias;
+
+  int i;
+
+
   // preprocessing done in python script
   preprocess();
 
-  // First convolution layer
-  layerAndBias = getWeights("convlayer1_1.txt");
+
 
   float* convFilter(float* input_image, float* weight, float bias, int rows, int cols, int depth)
+
+  // First convolution layer
+  weights = getWeights("convlayer1_1.txt");
+  for(i = 0; i < 64; i++){
+    prevImage = inputImage;
+    layerWeight = weights[0];
+    layerBias = weights[1];
+
+    0:
+
+
+
+
+    inputImage = convFilter(inputImage, layerW, layerBias[i],  )
+    free(prevImage);
+  }
+
+
+
 
 
 
