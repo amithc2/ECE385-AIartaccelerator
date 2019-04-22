@@ -202,7 +202,7 @@ float* conv_layer(float* input_image, float* weight, float bias, int rows, int c
           test++;
         }
         else{
-          input_image_padded[i + (cols+2) * (j + (depth * k))] = 0;
+          input_image_padded[j + i*(cols+2) + k*(rows+2)*(cols+2)] = 0;
         }
         // printf("padded : %f\n", input_image_padded[i + (cols+2) * (j + (depth * k))]);
       }
