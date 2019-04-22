@@ -475,7 +475,7 @@ void createVGG16(){
       free(currFeatureMap);
       filterIndex = filterIndex + 576;
     }
-
+    free(pooledOutput);
     free(weights[0]);
     free(weights[1]);
     free(weights);
@@ -484,7 +484,7 @@ void createVGG16(){
    filterIndex = 0;
    n = 0;
    newFeatureMap = (float*)malloc(sizeof(float)*112*112*128);
-   weights = getWeights("convlayer2_1.txt");
+   weights = getWeights("convlayer2_2.txt");
      for(i = 0; i < 128; i++){
        layerWeight = weights[0];
        layerBias = weights[1];
@@ -507,6 +507,8 @@ void createVGG16(){
      free(weights);
 
 
+  pooledOutput = maxpool(newFeatureMap, 2, 112, 112, 128);
+  free(newFeatureMap);
 
   // maxpool();
   getWeights("convlayer2_1.txt");
