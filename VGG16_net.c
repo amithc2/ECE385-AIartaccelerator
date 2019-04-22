@@ -186,19 +186,24 @@ float* conv_layer(float* input_image, float* weight, float bias, int rows, int c
   int y = 0;
   int z = 0;
   int index = 0;
+  int test = 1;
 
   // zero-padding
-  float input_image_padded[(rows+2)*(cols+2)*(depth+2)];
-  for(i = 0; i < (rows + 2); i++){
-    for(j = 0; j < (cols + 2); j++){
-      for(k = 0; k < (depth); k++){
+  float input_image_padded[(rows+2)*(cols+2)*(depth)];
+  for(k = 0; k < (depth); k++){
+    for(i = 0; i < (rows + 2); i++){
+      for(j = 0; j < (cols + 2); j++){
         if(i > 0 && i < rows + 1 && j > 0 && j < cols + 1){
-          input_image_padded[i + (cols * (j + (depth * k)))] = input_image[(i - 1) + (cols * ((j - 1) + (depth * (k))))];
+          input_image_padded[j + i*(rows+2) + k*(rows+2)*(cols+2)] = input_image[(j-1) + (i-1)*cols + k*(rows)*(cols)];
+          //input_image_padded[i + (cols+2) * (j + (depth * k))] = input_image[(i - 1) + (cols * ((j - 1) + (depth * (k))))];
+          printf("padded : %f\n", input_image[(j-1) + (i-1)*cols + k*(rows)*(cols)]);
+          printf("%d\n",test );
+          test++;
         }
         else{
-          input_image_padded[i + (cols * (j + (depth * k)))] = 0;
+          input_image_padded[i + (cols+2) * (j + (depth * k))] = 0;
         }
-        printf("padded : %f\n", input_image_padded[i + (cols * (j + (depth * k)))]);
+        // printf("padded : %f\n", input_image_padded[i + (cols+2) * (j + (depth * k))]);
       }
     }
   }
@@ -352,12 +357,12 @@ int main(){
                                   1, 0, 2, 2, 0,
                                   2, 0, 0, 2, 0,
                                   2, 1, 2, 2, 0,
-                                  2, 1, 2, 1, 1,
+                                  2, 1, 2, 1, 1, // second index
                                   2, 1, 2, 0, 1,
                                   0, 2, 1, 0, 1,
                                   1, 2, 2, 2, 2,
                                   0, 1, 2, 0, 1,
-                                  2, 1, 1, 2, 0,
+                                  2, 1, 1, 2, 0, // third index
                                   1, 0, 0, 1, 0,
                                   0, 1, 0, 0, 0,
                                   1, 0, 2, 1, 0,
