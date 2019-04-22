@@ -12,18 +12,19 @@ float** getWeights(char* layerFile){
   int dimVal1, dimVal2, dimVal3, dimVal4;
   int i, length;
 
-  // return both the getLayer and getBias
+  // return both the getLayer and getBias pointers in an array
   LayerBias = (float**)malloc(sizeof(float*)*2);
-
+  // open the desired file
   if((weightsFile = fopen(layerFile, "r")) == NULL){
     printf("Content file not found!");
     return NULL;
   }
-
+  // get the dimensions of the 3d kernel
   fscanf(weightsFile, "%d", &dimVal1);
   fscanf(weightsFile, "%d", &dimVal2);
   fscanf(weightsFile, "%d", &dimVal3);
   fscanf(weightsFile, "%d", &dimVal4);
+
 
   length = dimVal1*dimVal2*dimVal3*dimVal4;
   getLayer = (float*)malloc(sizeof(float)*length);
@@ -35,6 +36,7 @@ float** getWeights(char* layerFile){
 
   LayerBias[0] = getLayer;
 
+  // get length of 1d bias matrix
   fscanf(weightsFile, "%d", &length);
   getBias = (float*)malloc(sizeof(float)*length);
 
@@ -42,7 +44,7 @@ float** getWeights(char* layerFile){
     fscanf(weightsFile, "%f", &val);
     getBias[i] = val;
   }
-
+  // return array
   LayerBias[1] = getBias;
   return LayerBias;
 }
@@ -51,7 +53,7 @@ int main(){
   float** layerAndBias;
   float* getLayer;
   float* getBias;
-  layerAndBias = getWeights("convlayer1_1.txt");
+  layerAndBias = getWeights("convlayer5_2.txt");
   int i, j, length;
   length = 64;
 
@@ -68,7 +70,7 @@ int main(){
   free(layerAndBias[1]);
   free(layerAndBias);
 
-  
+
     // int dimVal1, dimVal2, dimVal3, dimVal4, bleh;
     // FILE* weightsFile;
     // if((weightsFile = fopen("convlayer1_1.txt", "r")) == NULL){
