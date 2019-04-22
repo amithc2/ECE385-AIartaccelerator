@@ -191,9 +191,9 @@ float* conv_layer(float* input_image, float* weight, float bias, int rows, int c
   float input_image_padded[(rows+2)*(cols+2)*(depth+2)];
   for(i = 0; i < (rows + 2); i++){
     for(j = 0; j < (cols + 2); j++){
-      for(k = 0; k < (depth + 2); k++){
-        if(i > 0 && i < rows + 1 && j > 0 && j < cols + 1 && k > 0 && k < depth + 1){
-          input_image_padded[i + (cols * (j + (depth * k)))] = input_image[(i - 1) + (cols * ((j - 1) + (depth * (k - 1))))];
+      for(k = 0; k < (depth); k++){
+        if(i > 0 && i < rows + 1 && j > 0 && j < cols + 1){
+          input_image_padded[i + (cols * (j + (depth * k)))] = input_image[(i - 1) + (cols * ((j - 1) + (depth * (k))))];
         }
         else{
           input_image_padded[i + (cols * (j + (depth * k)))] = 0;
@@ -210,7 +210,7 @@ float* conv_layer(float* input_image, float* weight, float bias, int rows, int c
 
   for(i = 0; i < rows; i+=2){
     for(j = 0; j < cols; j+=2){
-      for(k = 0; k < depth; k++){
+      for(k = 0; k < depth - 2; k++){
         y = 0;
         // our filter is 3x3xdepth since the depth of our filter and the input
         // must be equal
@@ -347,7 +347,7 @@ int main(){
 
   // test for conv_layer
   printf("conv layer test\n");
-  float test_conv_layer[5*5*3] = {0, 0, 1, 0, 2,
+  float test_conv_layer[5*5*3] = {0, 0, 1, 0, 2, // first index
                                   1, 0, 2, 0, 1,
                                   1, 0, 2, 2, 0,
                                   2, 0, 0, 2, 0,
