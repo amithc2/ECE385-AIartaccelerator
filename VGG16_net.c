@@ -197,14 +197,14 @@ float* conv_layer(float* input_image, float* weight, float bias, int rows, int c
         if(i > 0 && i < rows + 1 && j > 0 && j < cols + 1){
           input_image_padded[j + i*(cols+2) + k*(rows+2)*(cols+2)] = input_image[(j-1) + (i-1)*cols + k*(rows)*(cols)];
           //input_image_padded[i + (cols+2) * (j + (depth * k))] = input_image[(i - 1) + (cols * ((j - 1) + (depth * (k))))];
-          printf("padded : %f\n", input_image[(j-1) + (i-1)*cols + k*(rows)*(cols)]);
-          printf("%d\n",test );
+          // printf("unpadded : %f\n", input_image[(j-1) + (i-1)*cols + k*(rows)*(cols)]);
+          // printf("%d\n",test );
           test++;
         }
         else{
           input_image_padded[j + i*(cols+2) + k*(rows+2)*(cols+2)] = 0;
         }
-        // printf("padded : %f\n", input_image_padded[i + (cols+2) * (j + (depth * k))]);
+        // printf("padded : %f\n", input_image_padded[j + i*(cols+2) + k*(rows+2)*(cols+2)]);
       }
     }
   }
@@ -212,7 +212,7 @@ float* conv_layer(float* input_image, float* weight, float bias, int rows, int c
   // actual convolution
   float* filtered_image = (float*)malloc(sizeof(float)*(rows*cols*depth));
 
-  float patch[m*n*d];
+  float patch[m*n*3];
 
   for(k = 0; k < depth - 2; k++){
     for(i = 0; i < rows; i+=2){
@@ -220,11 +220,16 @@ float* conv_layer(float* input_image, float* weight, float bias, int rows, int c
         y = 0;
         // our filter is 3x3xdepth since the depth of our filter and the input
         // must be equal
+        // printf("new patch\n" );
         for(c = 0; c < depth; c++){
+            // printf("new patch dim\n" );
           for(a = 0; a < 3; a++){
             for(b = 0; b < 3; b++){
-
+              int testmeme = j+b + (i+a)*(cols+2) + (k+c)*(rows+2)*(cols+2);
+              // printf("patchy : %d b : %d j : %d i: %d a : %d c : %d testmeme : %d\n", y, b, j, i, a, c, testmeme);
+              // printf(" input padded : %f\n",input_image_padded[2] );
               patch[y] = input_image_padded[j+b + (i+a)*(cols+2) + (k+c)*(rows+2)*(cols+2)];
+              // printf("patch : %f\n", patch[y]);
               // input_image_padded[(i+a) + (cols * ((j+b) + (depth * (k+c))))];
               y++;
             }
@@ -238,7 +243,6 @@ float* conv_layer(float* input_image, float* weight, float bias, int rows, int c
       }
     }
   }
-
   return filtered_image;
 }
 
