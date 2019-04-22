@@ -8,17 +8,19 @@ with open('convlayer1_1.txt', 'w') as outfile:
     convTensor = weights[keys[0]]
     convBias = weights[keys[1]]
     print(np.shape(convTensor))
-    outfile.write('# Weight matrix shape: {0}\n'.format(convTensor.shape))
+    #outfile.write('# Weight matrix shape: {0}\n'.format(convTensor.shape))
     convFilters = np.split(convTensor, 64, axis = 3)
     for dataSlice in convFilters:
         for dataminiSlice in dataSlice:
             for dataMeme in dataminiSlice:
                 np.savetxt(outfile, dataMeme, fmt='%-7.2f')
-        outfile.write('# New filter\n')
+        #outfile.write('# New filter\n')
     outfile.write('# Bias matrix shape: {0}\n'.format(convBias.shape))
     for i in range(64):
         outfile.write("%f\n " % convBias[i])
 outfile.close()
+
+
 
 
 with open('convlayer1_2.txt', 'w') as outfile:
