@@ -80,12 +80,13 @@ float* matrixIndexMultiplier(float* matrix1, float* matrix2, int h1, int w1, int
   float* result = (float*)malloc(sizeof(float)*(h1*w2*depth));
 
   // multiply matrices
-  for(i = 0; i < h1; i++){
-    for(j = 0; j < w2; j++){
-      for(k = 0; k < depth; k++){
-        result[i + (w2 * (j + (depth * k)))] = matrix1[i + (w2 * (j + (depth * k)))]*matrix2[i + (w2 * (j + (depth * k)))];
+  for(k = 0; k < depth; k++){
+    for(i = 0; i < h1; i++){
+      for(j = 0; j < w2; j++){
+          result[i + j * h1 + k*h1*w2] = matrix1[i + j * h1 + k*h1*w2] * matrix2[i + j * h1 + k*h1*w2];
+          // result[i + (w2 * (j + (depth * k)))] = matrix1[i + (w2 * (j + (depth * k)))]*matrix2[i + (w2 * (j + (depth * k)))];
+        }
       }
-    }
   }
 
   return result;
@@ -194,7 +195,7 @@ float* conv_layer(float* input_image, float* weight, float bias, int rows, int c
     for(i = 0; i < (rows + 2); i++){
       for(j = 0; j < (cols + 2); j++){
         if(i > 0 && i < rows + 1 && j > 0 && j < cols + 1){
-          input_image_padded[j + i*(rows+2) + k*(rows+2)*(cols+2)] = input_image[(j-1) + (i-1)*cols + k*(rows)*(cols)];
+          input_image_padded[j + i*(cols+2) + k*(rows+2)*(cols+2)] = input_image[(j-1) + (i-1)*cols + k*(rows)*(cols)];
           //input_image_padded[i + (cols+2) * (j + (depth * k))] = input_image[(i - 1) + (cols * ((j - 1) + (depth * (k))))];
           printf("padded : %f\n", input_image[(j-1) + (i-1)*cols + k*(rows)*(cols)]);
           printf("%d\n",test );
@@ -213,16 +214,18 @@ float* conv_layer(float* input_image, float* weight, float bias, int rows, int c
 
   float patch[m*n*d];
 
-  for(i = 0; i < rows; i+=2){
-    for(j = 0; j < cols; j+=2){
-      for(k = 0; k < depth - 2; k++){
+  for(k = 0; k < depth - 2; k++){
+    for(i = 0; i < rows; i+=2){
+      for(j = 0; j < cols; j+=2){
         y = 0;
         // our filter is 3x3xdepth since the depth of our filter and the input
         // must be equal
-        for(a = 0; a < 3; a++){
-          for(b = 0; b < 3; b++){
-            for(c = 0; c < depth; c++){
-              patch[y] = input_image_padded[(i+a) + (cols * ((j+b) + (depth * (k+c))))];
+        for(c = 0; c < depth; c++){
+          for(a = 0; a < 3; a++){
+            for(b = 0; b < 3; b++){
+
+              patch[y] = input_image_padded[j+b + (i+a)*(cols+2) + (k+c)*(rows+2)*(cols+2)];
+              // input_image_padded[(i+a) + (cols * ((j+b) + (depth * (k+c))))];
               y++;
             }
           }
