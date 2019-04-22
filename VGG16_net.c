@@ -226,7 +226,7 @@ float* preprocess(float* im){
 
 // assuming the weights are going to be 3x3 filters
 // 3d to 1d indexing: Flat[x + WIDTH * (y + DEPTH * z)] = Original[x, y, z]
-float* convFilter(float* input_image, float* weight, float bias, int rows, int cols, int depth){
+float* convFilter(float* input_image, float* weight, float bias, int rows, int cols, int depth, int stride){
   // variable declarations
   int m = rows - 2;
   int n = cols - 2;
@@ -263,8 +263,8 @@ float* convFilter(float* input_image, float* weight, float bias, int rows, int c
   float patch[m*n*3];
 
   for(k = 0; k < 1; k++){
-    for(i = 0; i < rows; i+=2){
-      for(j = 0; j < cols; j+=2){
+    for(i = 0; i < rows; i+=stride){
+      for(j = 0; j < cols; j+=stride){
         y = 0;
         // our filter is 3x3xdepth since the depth of our filter and the input
         // must be equal
@@ -388,11 +388,11 @@ void createVGG16(){
 
 
   // preprocessing done in python script
-  preprocess();
+  // preprocess();
 
 
 
-  float* convFilter(float* input_image, float* weight, float bias, int rows, int cols, int depth)
+  // float* convFilter(float* input_image, float* weight, float bias, int rows, int cols, int depth);
 
   // First convolution layer
   weights = getWeights("convlayer1_1.txt");
@@ -417,22 +417,22 @@ void createVGG16(){
 
 
   getWeights("convlayer1_2.txt");
-  maxpool();
+  // maxpool();
   getWeights("convlayer2_1.txt");
   getWeights("convlayer2_2.txt");
-  maxpool();
+  // maxpool();
   getWeights("convlayer3_1.txt");
   getWeights("convlayer3_2.txt");
   getWeights("convlayer3_3.txt");
-  maxpool();
+  // maxpool();
   getWeights("convlayer4_1.txt");
   getWeights("convlayer4_2.txt");
   getWeights("convlayer4_3.txt");
-  maxpool();
+  // maxpool();
   getWeights("convlayer5_1.txt");
   getWeights("convlayer5_2.txt");
   getWeights("convlayer5_3.txt");
-  maxpool();
+  // maxpool();
 
 }
 
@@ -460,13 +460,19 @@ int main(){
 
   //test for maxpool function
   printf("maxpool test\n");
-  float maxpool_test[36] = {1, 4, 4, 1, 2, 2,
+  float maxpool_test[36*2] = {1, 4, 4, 1, 2, 2,
+                            0, 4, 1, 2, 4, 2,
+                            3, 1, 0, 3, 3, 0,
+                            2, 0, 3, 1, 3, 4,
+                            0, 0, 4, 0, 1, 1,
+                            2, 0, 3, 1, 2, 1,
+                            1, 4, 4, 1, 2, 2,
                             0, 4, 1, 2, 4, 2,
                             3, 1, 0, 3, 3, 0,
                             2, 0, 3, 1, 3, 4,
                             0, 0, 4, 0, 1, 1,
                             2, 0, 3, 1, 2, 1};
-  float* maxpool_result_test = maxpool(maxpool_test, 2, 6, 6, 1);
+  float* maxpool_result_test = maxpool(maxpool_test, 2, 6, 6, 2);
   for(int i = 0; i < 9; i++)
     printf("result: %f\n", maxpool_result_test[i]);
   free(maxpool_result_test);
@@ -498,7 +504,7 @@ int main(){
                                    1, 1, 0,
                                    0, -1, 0};
   float test_bias = 1.0;
-  float* conv_layer_test = conv_layer(test_conv_layer, test_conv_weight, test_bias, 5, 5, 3);
+  float* conv_layer_test = convFilter(test_conv_layer, test_conv_weight, test_bias, 5, 5, 3, 2);
   for(int i = 0; i < 9; i++)
     printf("result: %f\n", conv_layer_test[i]);
   free(conv_layer_test);
