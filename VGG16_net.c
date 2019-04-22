@@ -416,19 +416,10 @@ void createVGG16(){
     free(currFeatureMap);
     filterIndex = filterIndex + 27;
   }
-  free(inputImage);
+
   free(weights[0]);
   free(weights[1]);
   free(weights);
-  // // convert featureMapArray to 1d tensor
-  // k = 0;
-  // for(i = 0; i < 64; i++){
-  //   currFeatureMap = featureMapArray[i]
-  //   for(j = 0; j < 224*224; j++){
-  //     featureMap[k] = currFeatureMap[j]
-  //     k++;
-  //   }
-  // }
 
   // Block 2
   filterIndex = 0;
@@ -456,7 +447,38 @@ void createVGG16(){
   free(weights[1]);
   free(weights);
 
+  // perform Max Pooling
+  float* pooledOutput;
+  pooledOutput = maxpool(newFeatureMap, 2, 224, 224, 64);
+  free(newFeatureMap);
 
+
+  // CONVOLUTION LAYER 2
+  // Block 1
+  filterIndex = 0;
+  n = 0;
+  newFeatureMap = (float*)malloc(sizeof(float)*224*224*64);
+  weights = getWeights("convlayer1_2.txt");
+    for(i = 0; i < 64; i++){
+      layerWeight = weights[0];
+      layerBias = weights[1];
+      k = 0;
+      for(j = filterIndex; j < filterIndex + 27; j++){
+        convKernel[k] = layerWeight[j];
+        k++;
+      }
+      currFeatureMap = convFilter(featureMap, convKernel, layerBias[i], 224, 224, 64, 1);
+      for(m = 0; m < 224*224; m++){
+        featureMap[n] = currFeatureMap[m];
+        n++;
+      }
+      free(currFeatureMap);
+      filterIndex = filterIndex + 27;
+    }
+    free(featureMap);
+    free(weights[0]);
+    free(weights[1]);
+    free(weights);
 
 
 
@@ -478,6 +500,17 @@ void createVGG16(){
   // maxpool();
 
 }
+
+
+// // convert featureMapArray to 1d tensor
+// k = 0;
+// for(i = 0; i < 64; i++){
+//   currFeatureMap = featureMapArray[i]
+//   for(j = 0; j < 224*224; j++){
+//     featureMap[k] = currFeatureMap[j]
+//     k++;
+//   }
+// }
 
 
 
