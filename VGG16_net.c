@@ -181,7 +181,6 @@ float* preprocess(char* inputImageFile){
     imgArray[i] = val;
   }
 
-
   return imgArray;
 }
 
@@ -418,6 +417,7 @@ void createVGG16(float* inputImage){
   float* convKernel;
   float* newFeatureMap;
 
+
   // preprocessing done in python script
   // preprocess();
 
@@ -439,18 +439,28 @@ void createVGG16(float* inputImage){
       k++;
     }
     currFeatureMap = convFilter(inputImage, convKernel, layerBias[i], 224, 224, 3, 1);
+
     for(m = 0; m < 224*224; m++){
       featureMap[n] = currFeatureMap[m];
       n++;
     }
+
     free(currFeatureMap);
     filterIndex = filterIndex + 27;
   }
+
+  featureMap = relu(featureMap, 224*224*64);
+  // int idx;
+  // for(idx = 0; idx < 50; idx++){
+  //   printf("%f\n", currFeatureMap[idx]);
+  // }
+
 
   free(weights[0]);
   free(weights[1]);
   free(weights);
   free(convKernel);
+
 
   // Block 2
   filterIndex = 0;
@@ -485,6 +495,7 @@ void createVGG16(float* inputImage){
 
   newFeatureMap = relu(newFeatureMap, 224*224*64);
 
+
   // perform Max Pooling
   float* pooledOutput;
   pooledOutput = maxpool(newFeatureMap, 2, 224, 224, 64);
@@ -511,6 +522,10 @@ void createVGG16(float* inputImage){
         featureMap[n] = currFeatureMap[m];
         n++;
       }
+      // int idx;
+      // for(idx = 0; idx < 3; idx++){
+      //   printf("%f\n", currFeatureMap[idx]);
+      // }
       free(currFeatureMap);
       filterIndex = filterIndex + 576;
     }
@@ -909,7 +924,7 @@ int main(){
   //   printf("result: %f\n", conv_layer_test[i]);
   // free(conv_layer_test);
   float* inputImage;
-  inputImage = preprocess("laska.png");
+  inputImage = preprocess("input.txt");
   createVGG16(inputImage);
 
 
