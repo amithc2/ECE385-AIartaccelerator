@@ -156,11 +156,33 @@ float sum(float* input, int size){
 // vgg_mean= array value of : [123.68, 116.779, 103.939] in numpy this is float data type
 // subtract each pixel in the image by the vgg_mean
 // next  convert  RGB  to  BGR by right shifting
-float* preprocess(float* im){
+float* preprocess(char* inputImageFile){
   // RGB2BGR macro
   // Resize image
   // subtract vgg mean
-  return NULL;
+  float* imgArray;
+  float val;
+  int dimVal1, dimVal2, dimVal3;
+  int i, length;
+  FILE* image;
+  if((image = fopen(inputImageFile, "r")) == NULL){
+    printf("Content file not found!");
+    return NULL;
+  }
+
+  fscanf(image, "%d", &dimVal1);
+  fscanf(image, "%d", &dimVal2);
+  fscanf(image, "%d", &dimVal3);
+
+  length = 224*224*3;
+  imgArray = (float*)malloc(sizeof(float)*length);
+  for(i = 0; i < length; i++){
+    fscanf(image, "%f", &val);
+    imgArray[i] = val;
+  }
+
+
+  return imgArray;
 }
 
 // here is the general description of the stack of conv layers
@@ -377,8 +399,7 @@ float* softmax(float* x, int size){
   return softmax_result;
 }
 
-void createVGG16(){
-  float* inputImage;
+void createVGG16(float* inputImage){
   float* prevImage;
   float** weights;
   float* layerWeight;
