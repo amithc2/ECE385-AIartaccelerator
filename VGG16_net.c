@@ -337,9 +337,14 @@ float* convFilter(float* input_image, float* weight, float bias, int rows, int c
   }G
 */
 float* relu(float* x, int size){
-  for(int i = 0; i < size; i++)
+  int i;
+  for(i = 0; i < size; i++){
     if(x[i] < 0)
       x[i] = 0.0;
+
+
+  }
+
 
   return x;
 }
@@ -358,7 +363,7 @@ float* relu(float* x, int size){
   }
 */
 float* maxpool(float* x, int stride, int rows, int cols, int depth){
-  float* result = (float*)malloc(sizeof(float)*(depth*(rows*cols))));
+  float* result = (float*)malloc(sizeof(float)*(depth*(rows*cols)));
   float curr_max;
   int m = rows - 1;
   int n = cols - 1;
@@ -366,7 +371,6 @@ float* maxpool(float* x, int stride, int rows, int cols, int depth){
   for(int k = 0; k < depth; k++){
     for(int i = 0; i < rows; i+=stride){
       for(int j = 0; j < cols; j+=stride){
-          curr_max = x[i*cols + j];
           curr_max = x[i*cols + j + k*rows*cols];
 
           for(int a = 0; a < 2; a++){
@@ -387,29 +391,59 @@ float* maxpool(float* x, int stride, int rows, int cols, int depth){
 // backprop for maxpool
 // essentially inputs that are not the "max" are given 0 since they don't affect the output
 float* backMax(float* dL, float* result, float* x, int stride, int rows, int cols, int depth){
-  float* dX = (float*)malloc(sizeof(float)*(depth*(rows*cols))));
+
+  // dL is input for backprop
+  // result is output of maxPooling
+  // input for maxPooling
+
+  printf("Values of result===========\n");
+  int idx;
+  for(idx = 0; idx < 150; idx++){
+      printf("%f\n", result[idx]);
+  }
+  printf("Values of x=============\n");
+  for(idx = 0; idx < 150; idx++){
+      printf("%f\n", x[idx]);
+  }
+  float* dX = (float*)malloc(sizeof(float)*(depth*(rows*cols)));
   float dLval;
   float curr_max;
-  int m = rows - 1;
-  int n = cols - 1;
   int y = 0;
   for(int k = 0; k < depth; k++){
     for(int i = 0; i < rows; i+=stride){
       for(int j = 0; j < cols; j+=stride){
           dLval = dL[y];
           curr_max = result[y];
+          //printf("result[y] is %f", result[y]);
           y++;
           for(int a = 0; a < 2; a++){
             for(int b = 0; b < 2; b++){
-              if(x[j+b + (i+a)*cols + (k)*(rows*cols)] != curr_max)
+              if(x[j+b + (i+a)*cols + (k)*(rows*cols)] < curr_max)
                 dX[j+b + (i+a)*cols + (k)*(rows*cols)] = 0.0;
               else
-                dX[j+b + (i+a)*cols + (k)*(rows*cols)] = dLval;
+                dX[j+b + (i+a)*cols + (k)*(rows*cols)] = 1.0;
             }
           }
       }
     }
   }
+  return dX;
+}
+
+
+float* backRelu(float* dL, float* result, float* x, int size){
+  float* dX = (float*)malloc(sizeof(float)*size);
+  int i;
+  float dLval;
+  for(i = 0; i < size; i++)
+    dLval = dL[i];
+    if(x[i] <= 0){
+      dX[i] = 0.0;
+    }
+    else{
+      dX[i] = dLval;
+    }
+
   return dX;
 }
 
@@ -533,8 +567,8 @@ void createVGG16(float* inputImage){
   float* pooledOutput;
   pooledOutput = maxpool(newFeatureMap, 2, 224, 224, 64);
   free(newFeatureMap);
-  printf("FIRST LAYER DONE");
-  printf("%f\n", pooledOutput[0]);
+
+
 
   // CONVOLUTION LAYER 2
   // Block 1
@@ -563,11 +597,21 @@ void createVGG16(float* inputImage){
       free(currFeatureMap);
       filterIndex = filterIndex + 576;
     }
+    // printf("BEFORE relu========================");
+    // int idx;
+    // for(idx = 0; idx < 50; idx++){
+    //   printf("%f\n", featureMap[idx]);
+    // }
+
     free(pooledOutput);
     free(weights[0]);
     free(weights[1]);
     free(weights);
     free(convKernel);
+
+    featureMap = relu(featureMap, 112*112*128);
+
+
    // Block 2
    filterIndex = 0;
    n = 0;
@@ -582,7 +626,7 @@ void createVGG16(float* inputImage){
          convKernel[k] = layerWeight[j];
          k++;
        }
-       currFeatureMap = convFilter(featureMap, convKernel, layerBias[i], 112, 112, 64, 1);
+       currFeatureMap = convFilter(featureMap, convKernel, layerBias[i], 112, 112, 128, 1);
        for(m = 0; m < 112*112; m++){
          newFeatureMap[n] = currFeatureMap[m];
          n++;
@@ -596,10 +640,10 @@ void createVGG16(float* inputImage){
      free(weights);
      free(convKernel);
 
-
   newFeatureMap = relu(newFeatureMap, 112*112*128);
   pooledOutput = maxpool(newFeatureMap, 2, 112, 112, 128);
   free(newFeatureMap);
+
 
   // CONVOLUTION LAYER 3
   // Block 1
@@ -629,6 +673,7 @@ void createVGG16(float* inputImage){
     free(weights[1]);
     free(weights);
     free(convKernel);
+    featureMap = relu(featureMap, 56*56*256);
 
     // Block 2
     filterIndex = 0;
@@ -658,6 +703,7 @@ void createVGG16(float* inputImage){
       free(weights);
       free(convKernel);
 
+    newFeatureMap = relu(newFeatureMap, 56*56*256);
     // Block 3
     filterIndex = 0;
     n = 0;
@@ -691,6 +737,13 @@ void createVGG16(float* inputImage){
       pooledOutput = maxpool(featureMap, 2, 56, 56, 256);
       free(featureMap);
 
+      // printf("After maxpooling========================");
+      // int idx;
+      // for(idx = 0; idx < 150; idx++){
+      //   printf("%f\n", pooledOutput[idx]);
+      // }
+
+
 
     // CONVOLUTION LAYER 4
     // Block 1
@@ -722,6 +775,8 @@ void createVGG16(float* inputImage){
       free(convKernel);
 
 
+      featureMap = relu(featureMap, 28*28*512);
+
       // Block 2
       filterIndex = 0;
       n = 0;
@@ -749,6 +804,8 @@ void createVGG16(float* inputImage){
         free(weights[1]);
         free(weights);
         free(convKernel);
+
+        newFeatureMap = relu(newFeatureMap, 28*28*512);
 
         // Block 3
         filterIndex = 0;
@@ -782,6 +839,7 @@ void createVGG16(float* inputImage){
           pooledOutput = maxpool(featureMap, 2, 28, 28, 512);
           free(featureMap);
 
+
         // CONVOLUTION LAYER 5
         // Block 1
         filterIndex = 0;
@@ -811,6 +869,8 @@ void createVGG16(float* inputImage){
           free(weights);
           free(convKernel);
 
+          featureMap = relu(featureMap, 14*14*512);
+
           // Block 2
           filterIndex = 0;
           n = 0;
@@ -839,6 +899,8 @@ void createVGG16(float* inputImage){
             free(weights);
             free(convKernel);
 
+          newFeatureMap = relu(newFeatureMap, 14*14*512);
+
           // Block 3
           filterIndex = 0;
           n = 0;
@@ -866,12 +928,54 @@ void createVGG16(float* inputImage){
             free(weights[1]);
             free(weights);
             free(convKernel);
-
             featureMap = relu(featureMap, 14*14*512);
+            printf("before maxPooling========================");
+            int idx;
+            for(idx = 0; idx < 150; idx++){
+                printf("%f\n", featureMap[idx]);
+            }
+
+
+
             pooledOutput = maxpool(featureMap, 2, 14, 14, 512);
-            free(featureMap);
+            // printf("before maxPooling========================");
+            // int idx;
+            // for(idx = 0; idx < 150; idx++){
+            //     printf("%f\n", featureMap[idx]);
+            // }
+            // WE GET ALL ZEROS FOR THE before maxPooling JOHN
 
 
+
+            printf("after maxPooling========================");
+            for(idx = 0; idx < 150; idx++){
+                printf("%f\n", pooledOutput[idx]);
+            }
+
+
+            // WE GET CORRECT output FOR THE after maxPooling JOHN
+
+
+
+
+            float* backMaxOut;
+            backMaxOut = backMax(pooledOutput, pooledOutput, featureMap, 2, 14, 14, 512);
+          //  printf("After backProp========================");
+            //
+            // for(idx = 0; idx < 150; idx++){
+            //     printf("%f\n", backMaxOut[idx]);
+            // }
+
+
+            //
+            // FILE* backPropOut;
+            // if((backPropOut = fopen("backpropMax.txt", "w")) == NULL){
+            //   printf("Content file not found!");
+            //   return;
+            // }
+            // for(i = 0; i < 512; i++){
+            //   fprintf(backPropOut, "%f ", backMaxOut[i]);
+            // }
 
 }
 
