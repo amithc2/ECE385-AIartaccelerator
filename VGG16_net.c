@@ -729,7 +729,7 @@ void createVGG16(){
           n = 0;
           newFeatureMap = (float*)malloc(sizeof(float)*14*14*512);
           convKernel = (float*)malloc(sizeof(float)*4608);
-          weights = getWeights("convlayer4_2.txt");
+          weights = getWeights("convlayer5_2.txt");
             for(i = 0; i < 512; i++){
               layerWeight = weights[0];
               layerBias = weights[1];
@@ -757,7 +757,7 @@ void createVGG16(){
           n = 0;
           featureMap = (float*)malloc(sizeof(float)*14*14*512);
           convKernel = (float*)malloc(sizeof(float)*4608);
-          weights = getWeights("convlayer4_3.txt");
+          weights = getWeights("convlayer5_3.txt");
             for(i = 0; i < 512; i++){
               layerWeight = weights[0];
               layerBias = weights[1];
