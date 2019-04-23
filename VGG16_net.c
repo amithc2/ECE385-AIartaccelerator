@@ -358,7 +358,7 @@ float* relu(float* x, int size){
   }
 */
 float* maxpool(float* x, int stride, int rows, int cols, int depth){
-  float* result = (float*)malloc(sizeof(float)*(depth*(rows*cols)/(stride*stride)));
+  float* result = (float*)malloc(sizeof(float)*(depth*(rows*cols))));
   float curr_max;
   int m = rows - 1;
   int n = cols - 1;
@@ -366,12 +366,12 @@ float* maxpool(float* x, int stride, int rows, int cols, int depth){
   for(int k = 0; k < depth; k++){
     for(int i = 0; i < rows; i+=stride){
       for(int j = 0; j < cols; j+=stride){
-          curr_max = x[i*cols + j];
+          curr_max = x[i*cols + j + k*rows*cols];
           for(int a = 0; a < 2; a++){
             for(int b = 0; b < 2; b++){
               //printf("%f\n", x[(i+a)*(cols) + j + b]);
-              if(curr_max < x[j+b + (i+a)*cols])
-                curr_max = x[j+b + (i+a)*cols];
+              if(curr_max < x[j+b + (i+a)*cols + (k)*(rows*cols)])
+                curr_max = x[j+b + (i+a)*cols + k*rows*cols];
             }
           }
         result[y] = curr_max;
