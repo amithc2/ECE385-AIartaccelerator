@@ -358,7 +358,7 @@ float* relu(float* x, int size){
   }
 */
 float* maxpool(float* x, int stride, int rows, int cols, int depth){
-  float* result = (float*)malloc(sizeof(float)*(depth*(rows*cols)/stride));
+  float* result = (float*)malloc(sizeof(float)*(depth*(rows*cols)/(stride*stride)));
   float curr_max = x[0];
   int m = rows - 1;
   int n = cols - 1;
@@ -367,6 +367,7 @@ float* maxpool(float* x, int stride, int rows, int cols, int depth){
     for(int i = 0; i < rows; i+=stride){
       for(int j = 0; j < cols; j+=stride){
         float curr_max = x[i*cols + j];
+        printf("%f\n", curr_max);
         for(int c = 0; c < depth; c++){
           for(int a = 0; a < 2; a++){
             for(int b = 0; b < 2; b++){
@@ -499,12 +500,13 @@ void createVGG16(float* inputImage){
 
   newFeatureMap = relu(newFeatureMap, 224*224*64);
 
-  printf("%f\n", newFeatureMap[1]);
+  //printf("%f\n", newFeatureMap[1]);
   // perform Max Pooling
   float* pooledOutput;
   pooledOutput = maxpool(newFeatureMap, 2, 224, 224, 64);
   free(newFeatureMap);
-
+  printf("FIRST LAYER DONE");
+  printf("%f\n", pooledOutput[0]);
 
   // CONVOLUTION LAYER 2
   // Block 1
