@@ -3,6 +3,9 @@ import numpy as np
 
 weights = np.load('vgg16_weights.npz')
 keys = sorted(weights.keys())
+print(keys)
+print(weights[keys[0]])
+
 
 with open('convlayer1_1.txt', 'w') as outfile:
     convTensor = weights[keys[0]]
@@ -11,11 +14,10 @@ with open('convlayer1_1.txt', 'w') as outfile:
     #outfile.write(format(convTensor.shape))
     outfile.write('3 3 3 64')
     outfile.write('\n')
-    convFilters = np.split(convTensor, 64, axis = 3)
-    for dataSlice in convFilters:
-        for dataminiSlice in dataSlice:
-            for dataMeme in dataminiSlice:
-                np.savetxt(outfile, dataMeme, fmt='%-7.2f')
+    for i in range(convTensor.shape[3]):
+        for j in range(convTensor.shape[2]):
+            for k in range(convTensor.shape[0]):
+                np.savetxt(outfile, convTensor[k,...,j,i], fmt='%-7.9f')
         #outfile.write('# New filter\n')
     outfile.write('\n')
     outfile.write('64')
@@ -34,11 +36,10 @@ with open('convlayer1_2.txt', 'w') as outfile:
     #outfile.write('# Weight matrix shape: {0}\n'.format(convTensor.shape))
     outfile.write('3 3 64 64')
     outfile.write('\n')
-    convFilters = np.split(convTensor, 64, axis = 3)
-    for dataSlice in convFilters:
-        for dataminiSlice in dataSlice:
-            for dataMeme in dataminiSlice:
-                np.savetxt(outfile, dataMeme, fmt='%-7.2f')
+    for i in range(convTensor.shape[3]):
+        for j in range(convTensor.shape[2]):
+            for k in range(convTensor.shape[0]):
+                np.savetxt(outfile, convTensor[k,...,j,i], fmt='%-7.9f')
         #outfile.write('# New filter\n')
     #outfile.write('# Bias matrix shape: {0}\n'.format(convBias.shape))
     outfile.write('\n')
@@ -55,11 +56,10 @@ with open('convlayer2_1.txt', 'w') as outfile:
     #outfile.write('# Weight matrix shape: {0}\n'.format(convTensor.shape))
     outfile.write('3 3 64 128')
     outfile.write('\n')
-    convFilters = np.split(convTensor, 128, axis = 3)
-    for dataSlice in convFilters:
-        for dataminiSlice in dataSlice:
-            for dataMeme in dataminiSlice:
-                np.savetxt(outfile, dataMeme, fmt='%-7.2f')
+    for i in range(convTensor.shape[3]):
+        for j in range(convTensor.shape[2]):
+            for k in range(convTensor.shape[0]):
+                np.savetxt(outfile, convTensor[k,...,j,i], fmt='%-7.9f')
         #outfile.write('# New filter\n')
     #outfile.write('# Bias matrix shape: {0}\n'.format(convBias.shape))
     outfile.write('\n')
@@ -76,11 +76,10 @@ with open('convlayer2_2.txt', 'w') as outfile:
     #outfile.write('# Weight matrix shape: {0}\n'.format(convTensor.shape))
     outfile.write('3 3 128 128')
     outfile.write('\n')
-    convFilters = np.split(convTensor, 128, axis = 3)
-    for dataSlice in convFilters:
-        for dataminiSlice in dataSlice:
-            for dataMeme in dataminiSlice:
-                np.savetxt(outfile, dataMeme, fmt='%-7.2f')
+    for i in range(convTensor.shape[3]):
+        for j in range(convTensor.shape[2]):
+            for k in range(convTensor.shape[0]):
+                np.savetxt(outfile, convTensor[k,...,j,i], fmt='%-7.9f')
         #outfile.write('# New filter\n')
     #outfile.write('# Bias matrix shape: {0}\n'.format(convBias.shape))
     outfile.write('\n')
@@ -98,11 +97,10 @@ with open('convlayer3_1.txt', 'w') as outfile:
     #outfile.write('# Weight matrix shape: {0}\n'.format(convTensor.shape))
     outfile.write('3 3 128 256')
     outfile.write('\n')
-    convFilters = np.split(convTensor, 256, axis = 3)
-    for dataSlice in convFilters:
-        for dataminiSlice in dataSlice:
-            for dataMeme in dataminiSlice:
-                np.savetxt(outfile, dataMeme, fmt='%-7.2f')
+    for i in range(convTensor.shape[3]):
+        for j in range(convTensor.shape[2]):
+            for k in range(convTensor.shape[0]):
+                np.savetxt(outfile, convTensor[k,...,j,i], fmt='%-7.9f')
         #outfile.write('# New filter\n')
     #outfile.write('# Bias matrix shape: {0}\n'.format(convBias.shape))
     outfile.write('\n')
@@ -119,11 +117,10 @@ with open('convlayer3_2.txt', 'w') as outfile:
     #outfile.write('# Weight matrix shape: {0}\n'.format(convTensor.shape))
     outfile.write('3 3 256 256')
     outfile.write('\n')
-    convFilters = np.split(convTensor, 256, axis = 3)
-    for dataSlice in convFilters:
-        for dataminiSlice in dataSlice:
-            for dataMeme in dataminiSlice:
-                np.savetxt(outfile, dataMeme, fmt='%-7.2f')
+    for i in range(convTensor.shape[3]):
+        for j in range(convTensor.shape[2]):
+            for k in range(convTensor.shape[0]):
+                np.savetxt(outfile, convTensor[k,...,j,i], fmt='%-7.9f')
         #outfile.write('# New filter\n')
     #outfile.write('# Bias matrix shape: {0}\n'.format(convBias.shape))
     outfile.write('\n')
@@ -141,11 +138,10 @@ with open('convlayer3_3.txt', 'w') as outfile:
     #outfile.write('# Weight matrix shape: {0}\n'.format(convTensor.shape))
     outfile.write('3 3 256 256')
     outfile.write('\n')
-    convFilters = np.split(convTensor, 256, axis = 3)
-    for dataSlice in convFilters:
-        for dataminiSlice in dataSlice:
-            for dataMeme in dataminiSlice:
-                np.savetxt(outfile, dataMeme, fmt='%-7.2f')
+    for i in range(convTensor.shape[3]):
+        for j in range(convTensor.shape[2]):
+            for k in range(convTensor.shape[0]):
+                np.savetxt(outfile, convTensor[k,...,j,i], fmt='%-7.9f')
         #outfile.write('# New filter\n')
     #outfile.write('# Bias matrix shape: {0}\n'.format(convBias.shape))
     outfile.write('\n')
@@ -162,11 +158,10 @@ with open('convlayer4_1.txt', 'w') as outfile:
     #outfile.write('# Weight matrix shape: {0}\n'.format(convTensor.shape))
     outfile.write('3 3 256 512')
     outfile.write('\n')
-    convFilters = np.split(convTensor, 512, axis = 3)
-    for dataSlice in convFilters:
-        for dataminiSlice in dataSlice:
-            for dataMeme in dataminiSlice:
-                np.savetxt(outfile, dataMeme, fmt='%-7.2f')
+    for i in range(convTensor.shape[3]):
+        for j in range(convTensor.shape[2]):
+            for k in range(convTensor.shape[0]):
+                np.savetxt(outfile, convTensor[k,...,j,i], fmt='%-7.9f')
     #    outfile.write('# New filter\n')
     #outfile.write('# Bias matrix shape: {0}\n'.format(convBias.shape))
     outfile.write('\n')
@@ -183,11 +178,10 @@ with open('convlayer4_2.txt', 'w') as outfile:
     #outfile.write('# Weight matrix shape: {0}\n'.format(convTensor.shape))
     outfile.write('3 3 512 512')
     outfile.write('\n')
-    convFilters = np.split(convTensor, 512, axis = 3)
-    for dataSlice in convFilters:
-        for dataminiSlice in dataSlice:
-            for dataMeme in dataminiSlice:
-                np.savetxt(outfile, dataMeme, fmt='%-7.2f')
+    for i in range(convTensor.shape[3]):
+        for j in range(convTensor.shape[2]):
+            for k in range(convTensor.shape[0]):
+                np.savetxt(outfile, convTensor[k,...,j,i], fmt='%-7.9f')
         #outfile.write('# New filter\n')
     #outfile.write('# Bias matrix shape: {0}\n'.format(convBias.shape))
     outfile.write('\n')
@@ -204,11 +198,10 @@ with open('convlayer4_3.txt', 'w') as outfile:
     #outfile.write('# Weight matrix shape: {0}\n'.format(convTensor.shape))
     outfile.write('3 3 512 512')
     outfile.write('\n')
-    convFilters = np.split(convTensor, 512, axis = 3)
-    for dataSlice in convFilters:
-        for dataminiSlice in dataSlice:
-            for dataMeme in dataminiSlice:
-                np.savetxt(outfile, dataMeme, fmt='%-7.2f')
+    for i in range(convTensor.shape[3]):
+        for j in range(convTensor.shape[2]):
+            for k in range(convTensor.shape[0]):
+                np.savetxt(outfile, convTensor[k,...,j,i], fmt='%-7.9f')
         #outfile.write('# New filter\n')
     #outfile.write('# Bias matrix shape: {0}\n'.format(convBias.shape))
     outfile.write('\n')
@@ -225,11 +218,10 @@ with open('convlayer5_1.txt', 'w') as outfile:
     #outfile.write('# Weight matrix shape: {0}\n'.format(convTensor.shape))
     outfile.write('3 3 512 512')
     outfile.write('\n')
-    convFilters = np.split(convTensor, 512, axis = 3)
-    for dataSlice in convFilters:
-        for dataminiSlice in dataSlice:
-            for dataMeme in dataminiSlice:
-                np.savetxt(outfile, dataMeme, fmt='%-7.2f')
+    for i in range(convTensor.shape[3]):
+        for j in range(convTensor.shape[2]):
+            for k in range(convTensor.shape[0]):
+                np.savetxt(outfile, convTensor[k,...,j,i], fmt='%-7.9f')
         #outfile.write('# New filter\n')
     #outfile.write('# Bias matrix shape: {0}\n'.format(convBias.shape))
     outfile.write('\n')
@@ -246,11 +238,10 @@ with open('convlayer5_2.txt', 'w') as outfile:
     #outfile.write('# Weight matrix shape: {0}\n'.format(convTensor.shape))
     outfile.write('3 3 512 512')
     outfile.write('\n')
-    convFilters = np.split(convTensor, 512, axis = 3)
-    for dataSlice in convFilters:
-        for dataminiSlice in dataSlice:
-            for dataMeme in dataminiSlice:
-                np.savetxt(outfile, dataMeme, fmt='%-7.2f')
+    for i in range(convTensor.shape[3]):
+        for j in range(convTensor.shape[2]):
+            for k in range(convTensor.shape[0]):
+                np.savetxt(outfile, convTensor[k,...,j,i], fmt='%-7.9f')
         #outfile.write('# New filter\n')
     #outfile.write('# Bias matrix shape: {0}\n'.format(convBias.shape))
     outfile.write('\n')
@@ -267,11 +258,10 @@ with open('convlayer5_3.txt', 'w') as outfile:
     #outfile.write('# Weight matrix shape: {0}\n'.format(convTensor.shape))
     outfile.write('3 3 512 512')
     outfile.write('\n')
-    convFilters = np.split(convTensor, 512, axis = 3)
-    for dataSlice in convFilters:
-        for dataminiSlice in dataSlice:
-            for dataMeme in dataminiSlice:
-                np.savetxt(outfile, dataMeme, fmt='%-7.2f')
+    for i in range(convTensor.shape[3]):
+        for j in range(convTensor.shape[2]):
+            for k in range(convTensor.shape[0]):
+                np.savetxt(outfile, convTensor[k,...,j,i], fmt='%-7.9f')
         #outfile.write('# New filter\n')
     #outfile.write('# Bias matrix shape: {0}\n'.format(convBias.shape))
     outfile.write('\n')
