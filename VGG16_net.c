@@ -310,12 +310,16 @@ float* convFilter(float* input_image, float* weight, float bias, int rows, int c
         }
         float* matrixmult = matrixIndexMultiplier(patch, weight, 3, 3, 3, 3, depth);
         filtered_image[index] = sum(matrixmult, 3*3*depth) + bias;
+
+            //printf("%f\n", filtered_image[0]);
+
         index++;
         free(matrixmult);
         z++;
       }
     }
   }
+  //printf("%f\n", filtered_image[0]);
   free(patch);
   free(input_image_padded);
   return filtered_image;
@@ -417,7 +421,6 @@ void createVGG16(float* inputImage){
   float* convKernel;
   float* newFeatureMap;
 
-
   // preprocessing done in python script
   // preprocess();
 
@@ -439,7 +442,6 @@ void createVGG16(float* inputImage){
       k++;
     }
     currFeatureMap = convFilter(inputImage, convKernel, layerBias[i], 224, 224, 3, 1);
-
     for(m = 0; m < 224*224; m++){
       featureMap[n] = currFeatureMap[m];
       n++;
@@ -450,11 +452,13 @@ void createVGG16(float* inputImage){
   }
 
   featureMap = relu(featureMap, 224*224*64);
+  //printf("%f\n", featureMap[63]);
+
+
   // int idx;
   // for(idx = 0; idx < 50; idx++){
-  //   printf("%f\n", currFeatureMap[idx]);
+  //   printf("%f\n", featureMap[idx]);
   // }
-
 
   free(weights[0]);
   free(weights[1]);
@@ -495,7 +499,7 @@ void createVGG16(float* inputImage){
 
   newFeatureMap = relu(newFeatureMap, 224*224*64);
 
-
+  printf("%f\n", newFeatureMap[1]);
   // perform Max Pooling
   float* pooledOutput;
   pooledOutput = maxpool(newFeatureMap, 2, 224, 224, 64);
@@ -838,6 +842,8 @@ void createVGG16(float* inputImage){
             pooledOutput = maxpool(featureMap, 2, 14, 14, 512);
             free(featureMap);
 
+
+
 }
 
 
@@ -893,36 +899,36 @@ int main(){
   // free(maxpool_result_test);
   //
   // test for conv_layer
-  printf("conv layer test\n");
-  float test_conv_layer[5*5*3] = {0, 0, 1, 0, 2, // first index
-                                  1, 0, 2, 0, 1,
-                                  1, 0, 2, 2, 0,
-                                  2, 0, 0, 2, 0,
-                                  2, 1, 2, 2, 0,
-                                  2, 1, 2, 1, 1, // second index
-                                  2, 1, 2, 0, 1,
-                                  0, 2, 1, 0, 1,
-                                  1, 2, 2, 2, 2,
-                                  0, 1, 2, 0, 1,
-                                  2, 1, 1, 2, 0, // third index
-                                  1, 0, 0, 1, 0,
-                                  0, 1, 0, 0, 0,
-                                  1, 0, 2, 1, 0,
-                                  2, 2, 1, 1, 1};
-  float test_conv_weight[3*3*3] = {-1, 0, 1,
-                                   0, 0, 1,
-                                   1, -1, 1,
-                                   -1, 0, 1,
-                                   1, -1, 1,
-                                   0, 1, 0,
-                                   -1, 1, 1,
-                                   1, 1, 0,
-                                   0, -1, 0};
-  float test_bias = 1.0;
-  float* conv_layer_test = convFilter(test_conv_layer, test_conv_weight, test_bias, 5, 5, 3, 2);
-  for(int i = 0; i < 9; i++)
-    printf("result: %f\n", conv_layer_test[i]);
-  free(conv_layer_test);
+  // printf("conv layer test\n");
+  // float test_conv_layer[5*5*3] = {0, 0, 1, 0, 2, // first index
+  //                                 1, 0, 2, 0, 1,
+  //                                 1, 0, 2, 2, 0,
+  //                                 2, 0, 0, 2, 0,
+  //                                 2, 1, 2, 2, 0,
+  //                                 2, 1, 2, 1, 1, // second index
+  //                                 2, 1, 2, 0, 1,
+  //                                 0, 2, 1, 0, 1,
+  //                                 1, 2, 2, 2, 2,
+  //                                 0, 1, 2, 0, 1,
+  //                                 2, 1, 1, 2, 0, // third index
+  //                                 1, 0, 0, 1, 0,
+  //                                 0, 1, 0, 0, 0,
+  //                                 1, 0, 2, 1, 0,
+  //                                 2, 2, 1, 1, 1};
+  // float test_conv_weight[3*3*3] = {-1, 0, 1,
+  //                                  0, 0, 1,
+  //                                  1, -1, 1,
+  //                                  -1, 0, 1,
+  //                                  1, -1, 1,
+  //                                  0, 1, 0,
+  //                                  -1, 1, 1,
+  //                                  1, 1, 0,
+  //                                  0, -1, 0};
+  // float test_bias = 1.0;
+  // float* conv_layer_test = convFilter(test_conv_layer, test_conv_weight, test_bias, 5, 5, 3, 2);
+  // for(int i = 0; i < 9; i++)
+  //   printf("result: %f\n", conv_layer_test[i]);
+  // free(conv_layer_test);
   float* inputImage;
   inputImage = preprocess("input.txt");
   createVGG16(inputImage);
