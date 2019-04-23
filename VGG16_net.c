@@ -252,12 +252,10 @@ float* convFilter(float* input_image, float* weight, float bias, int rows, int c
   // variable declarations
   int m = rows - 2;
   int n = cols - 2;
-  int d = depth - 2;
   int i, j, k, a, b, c;
   int y = 0;
   int z = 0;
   int index = 0;
-  int test = 1;
 
   // zero-padding
   float input_image_padded[(rows+2)*(cols+2)*(depth)];
@@ -269,7 +267,6 @@ float* convFilter(float* input_image, float* weight, float bias, int rows, int c
           //input_image_padded[i + (cols+2) * (j + (depth * k))] = input_image[(i - 1) + (cols * ((j - 1) + (depth * (k))))];
           // printf("unpadded : %f\n", input_image[(j-1) + (i-1)*cols + k*(rows)*(cols)]);
           // printf("%d\n",test );
-          test++;
         }
         else{
           input_image_padded[j + i*(cols+2) + k*(rows+2)*(cols+2)] = 0;
@@ -282,7 +279,7 @@ float* convFilter(float* input_image, float* weight, float bias, int rows, int c
   // actual convolution
   float* filtered_image = (float*)malloc(sizeof(float)*(rows*cols));
 
-  float patch[m*n*3];
+  float patch[m*n*depth];
 
   for(k = 0; k < 1; k++){
     for(i = 0; i < rows; i+=stride){
