@@ -358,7 +358,7 @@ float* relu(float* x, int size){
   }
 */
 float* maxpool(float* x, int stride, int rows, int cols, int depth){
-  float* result = (float*)malloc(sizeof(float)*(depth*(rows*cols)));
+  float* result = (float*)malloc(sizeof(float)*(depth*(rows*cols))));
   float curr_max;
   int m = rows - 1;
   int n = cols - 1;
@@ -366,7 +366,9 @@ float* maxpool(float* x, int stride, int rows, int cols, int depth){
   for(int k = 0; k < depth; k++){
     for(int i = 0; i < rows; i+=stride){
       for(int j = 0; j < cols; j+=stride){
+          curr_max = x[i*cols + j];
           curr_max = x[i*cols + j + k*rows*cols];
+
           for(int a = 0; a < 2; a++){
             for(int b = 0; b < 2; b++){
               //printf("%f\n", x[(i+a)*(cols) + j + b]);
@@ -380,6 +382,36 @@ float* maxpool(float* x, int stride, int rows, int cols, int depth){
     }
   }
   return result;
+}
+
+// backprop for maxpool
+// essentially inputs that are not the "max" are given 0 since they don't affect the output
+float* backMax(float* dL, float* result, float* x, int stride, int rows, int cols, int depth){
+  float* result = (float*)malloc(sizeof(float)*(depth*(rows*cols))));
+  float* dX = (float*)malloc(sizeof(float)*(depth*(rows*cols))));
+  float dLval;
+  float curr_max;
+  int m = rows - 1;
+  int n = cols - 1;
+  int y = 0;
+  for(int k = 0; k < depth; k++){
+    for(int i = 0; i < rows; i+=stride){
+      for(int j = 0; j < cols; j+=stride){
+          dLval = dL[y];
+          curr_max = result[y];
+          y++;
+          for(int a = 0; a < 2; a++){
+            for(int b = 0; b < 2; b++){
+              if(x[j+b + (i+a)*cols + (k)*(rows*cols)] != result[y])
+                dX[j+b + (i+a)*cols + (k)*(rows*cols)] = 0.0;
+              else
+                dX[j+b + (i+a)*cols + (k)*(rows*cols)] = dLval;
+            }
+          }
+      }
+    }
+  }
+  return dX;
 }
 
 // softmax : this is used in the last layer for vgg16
@@ -502,8 +534,8 @@ void createVGG16(float* inputImage){
   float* pooledOutput;
   pooledOutput = maxpool(newFeatureMap, 2, 224, 224, 64);
   free(newFeatureMap);
-  // printf("FIRST LAYER DONE");
-  // printf("%f\n", pooledOutput[0]);
+  printf("FIRST LAYER DONE");
+  printf("%f\n", pooledOutput[0]);
 
   // CONVOLUTION LAYER 2
   // Block 1
@@ -532,9 +564,6 @@ void createVGG16(float* inputImage){
       free(currFeatureMap);
       filterIndex = filterIndex + 576;
     }
-
-    featureMap = relu(featureMap, 112*112*128);
-
     free(pooledOutput);
     free(weights[0]);
     free(weights[1]);
@@ -562,8 +591,6 @@ void createVGG16(float* inputImage){
        free(currFeatureMap);
        filterIndex = filterIndex + 1152;
      }
-
-
      free(featureMap);
      free(weights[0]);
      free(weights[1]);
@@ -598,9 +625,6 @@ void createVGG16(float* inputImage){
       free(currFeatureMap);
       filterIndex = filterIndex + 1152;
     }
-
-    featureMap = relu(featureMap, 56*56*256);
-
     free(pooledOutput);
     free(weights[0]);
     free(weights[1]);
@@ -629,9 +653,6 @@ void createVGG16(float* inputImage){
         free(currFeatureMap);
         filterIndex = filterIndex + 2304;
       }
-
-      newFeatureMap = relu(newFeatureMap, 56*56*256);
-
       free(featureMap);
       free(weights[0]);
       free(weights[1]);
@@ -695,11 +716,6 @@ void createVGG16(float* inputImage){
         free(currFeatureMap);
         filterIndex = filterIndex + 2304;
       }
-
-
-      featureMap = relu(featureMap, 28*28*512);
-
-
       free(pooledOutput);
       free(weights[0]);
       free(weights[1]);
@@ -729,9 +745,6 @@ void createVGG16(float* inputImage){
           free(currFeatureMap);
           filterIndex = filterIndex + 4608;
         }
-
-
-        newFeatureMap = relu(newFeatureMap, 28*28*512);
         free(featureMap);
         free(weights[0]);
         free(weights[1]);
@@ -793,8 +806,6 @@ void createVGG16(float* inputImage){
             free(currFeatureMap);
             filterIndex = filterIndex + 4608;
           }
-
-          featureMap = relu(featureMap, 14*14*512);
           free(pooledOutput);
           free(weights[0]);
           free(weights[1]);
@@ -823,8 +834,6 @@ void createVGG16(float* inputImage){
               free(currFeatureMap);
               filterIndex = filterIndex + 4608;
             }
-
-            newFeatureMap = relu(newFeatureMap, 14*14*512);
             free(featureMap);
             free(weights[0]);
             free(weights[1]);
@@ -863,7 +872,6 @@ void createVGG16(float* inputImage){
             pooledOutput = maxpool(featureMap, 2, 14, 14, 512);
             free(featureMap);
 
-            printf("%f\n", pooledOutput[0]);
 
 
 }
