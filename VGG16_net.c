@@ -387,7 +387,6 @@ float* maxpool(float* x, int stride, int rows, int cols, int depth){
 // backprop for maxpool
 // essentially inputs that are not the "max" are given 0 since they don't affect the output
 float* backMax(float* dL, float* result, float* x, int stride, int rows, int cols, int depth){
-  float* result = (float*)malloc(sizeof(float)*(depth*(rows*cols))));
   float* dX = (float*)malloc(sizeof(float)*(depth*(rows*cols))));
   float dLval;
   float curr_max;
@@ -402,7 +401,7 @@ float* backMax(float* dL, float* result, float* x, int stride, int rows, int col
           y++;
           for(int a = 0; a < 2; a++){
             for(int b = 0; b < 2; b++){
-              if(x[j+b + (i+a)*cols + (k)*(rows*cols)] != result[y])
+              if(x[j+b + (i+a)*cols + (k)*(rows*cols)] != curr_max)
                 dX[j+b + (i+a)*cols + (k)*(rows*cols)] = 0.0;
               else
                 dX[j+b + (i+a)*cols + (k)*(rows*cols)] = dLval;
