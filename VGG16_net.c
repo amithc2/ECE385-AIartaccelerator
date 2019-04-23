@@ -398,11 +398,11 @@ float* backMax(float* dL, float* result, float* x, int stride, int rows, int col
 
   printf("Values of result===========\n");
   int idx;
-  for(idx = 0; idx < 150; idx++){
+  for(idx = 0; idx < 14*512; idx++){
       printf("%f\n", result[idx]);
   }
   printf("Values of x=============\n");
-  for(idx = 0; idx < 150; idx++){
+  for(idx = 0; idx < 14*512; idx++){
       printf("%f\n", x[idx]);
   }
   float* dX = (float*)malloc(sizeof(float)*(depth*(rows*cols)));
@@ -414,7 +414,7 @@ float* backMax(float* dL, float* result, float* x, int stride, int rows, int col
       for(int j = 0; j < cols; j+=stride){
           dLval = dL[y];
           curr_max = result[y];
-          //printf("result[y] is %f", result[y]);
+          printf("result[y] is %f\n", result[y]);
           y++;
           for(int a = 0; a < 2; a++){
             for(int b = 0; b < 2; b++){
@@ -422,6 +422,7 @@ float* backMax(float* dL, float* result, float* x, int stride, int rows, int col
                 dX[j+b + (i+a)*cols + (k)*(rows*cols)] = 0.0;
               else
                 dX[j+b + (i+a)*cols + (k)*(rows*cols)] = 1.0;
+              printf("dX[index] is %f\n", dX[j+b + (i+a)*cols + (k)*(rows*cols)]);
             }
           }
       }
@@ -948,7 +949,7 @@ void createVGG16(float* inputImage){
 
 
             printf("after maxPooling========================");
-            for(idx = 0; idx < 150; idx++){
+            for(idx = 0; idx < 7*512; idx++){
                 printf("%f\n", pooledOutput[idx]);
             }
 
