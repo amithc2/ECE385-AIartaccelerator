@@ -532,6 +532,9 @@ void createVGG16(float* inputImage){
       free(currFeatureMap);
       filterIndex = filterIndex + 576;
     }
+
+    featureMap = relu(featureMap, 112*112*128);
+
     free(pooledOutput);
     free(weights[0]);
     free(weights[1]);
@@ -559,6 +562,8 @@ void createVGG16(float* inputImage){
        free(currFeatureMap);
        filterIndex = filterIndex + 1152;
      }
+
+
      free(featureMap);
      free(weights[0]);
      free(weights[1]);
@@ -593,6 +598,9 @@ void createVGG16(float* inputImage){
       free(currFeatureMap);
       filterIndex = filterIndex + 1152;
     }
+
+    featureMap = relu(featureMap, 56*56*256);
+
     free(pooledOutput);
     free(weights[0]);
     free(weights[1]);
@@ -621,6 +629,9 @@ void createVGG16(float* inputImage){
         free(currFeatureMap);
         filterIndex = filterIndex + 2304;
       }
+
+      newFeatureMap = relu(newFeatureMap, 56*56*256);
+
       free(featureMap);
       free(weights[0]);
       free(weights[1]);
@@ -684,6 +695,11 @@ void createVGG16(float* inputImage){
         free(currFeatureMap);
         filterIndex = filterIndex + 2304;
       }
+
+
+      featureMap = relu(featureMap, 28*28*512);
+
+
       free(pooledOutput);
       free(weights[0]);
       free(weights[1]);
@@ -713,6 +729,9 @@ void createVGG16(float* inputImage){
           free(currFeatureMap);
           filterIndex = filterIndex + 4608;
         }
+
+
+        newFeatureMap = relu(newFeatureMap, 28*28*512);
         free(featureMap);
         free(weights[0]);
         free(weights[1]);
@@ -774,6 +793,8 @@ void createVGG16(float* inputImage){
             free(currFeatureMap);
             filterIndex = filterIndex + 4608;
           }
+
+          featureMap = relu(featureMap, 14*14*512);
           free(pooledOutput);
           free(weights[0]);
           free(weights[1]);
@@ -802,6 +823,8 @@ void createVGG16(float* inputImage){
               free(currFeatureMap);
               filterIndex = filterIndex + 4608;
             }
+
+            newFeatureMap = relu(newFeatureMap, 14*14*512);
             free(featureMap);
             free(weights[0]);
             free(weights[1]);
