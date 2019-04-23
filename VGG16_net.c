@@ -358,24 +358,22 @@ float* relu(float* x, int size){
   }
 */
 float* maxpool(float* x, int stride, int rows, int cols, int depth){
-  float* result = (float*)malloc(sizeof(float)*(depth*(rows*cols)/stride));
-  float curr_max = x[0];
+  float* result = (float*)malloc(sizeof(float)*(depth*(rows*cols)/(stride*stride)));
+  float curr_max;
   int m = rows - 1;
   int n = cols - 1;
   int y = 0;
-  for(int k = 0; k < 1; k++){
+  for(int k = 0; k < depth; k++){
     for(int i = 0; i < rows; i+=stride){
       for(int j = 0; j < cols; j+=stride){
-        float curr_max = x[i*cols + j];
-        for(int c = 0; c < depth; c++){
+          curr_max = x[i*cols + j];
           for(int a = 0; a < 2; a++){
             for(int b = 0; b < 2; b++){
               //printf("%f\n", x[(i+a)*(cols) + j + b]);
-              if(curr_max < x[j+b + (i+a)*cols + (k+c)*rows*cols])
-                curr_max = x[j+b + (i+a)*cols + (k+c)*rows*cols];
+              if(curr_max < x[j+b + (i+a)*cols])
+                curr_max = x[j+b + (i+a)*cols];
             }
           }
-        }
         result[y] = curr_max;
         y++;
       }
@@ -538,7 +536,6 @@ void createVGG16(float* inputImage){
     free(weights[1]);
     free(weights);
     free(convKernel);
-
    // Block 2
    filterIndex = 0;
    n = 0;
