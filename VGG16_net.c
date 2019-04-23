@@ -396,15 +396,15 @@ float* backMax(float* dL, float* result, float* x, int stride, int rows, int col
   // result is output of maxPooling
   // input for maxPooling
 
-  printf("Values of result===========\n");
-  int idx;
-  for(idx = 0; idx < 14*512; idx++){
-      printf("%f\n", result[idx]);
-  }
-  printf("Values of x=============\n");
-  for(idx = 0; idx < 14*512; idx++){
-      printf("%f\n", x[idx]);
-  }
+  // printf("Values of result===========\n");
+  // int idx;
+  // for(idx = 0; idx < 14*512; idx++){
+  //     printf("%f\n", result[idx]);
+  // }
+  // printf("Values of x=============\n");
+  // for(idx = 0; idx < 14*512; idx++){
+  //     printf("%f\n", x[idx]);
+  // }
   float* dX = (float*)malloc(sizeof(float)*(depth*(rows*cols)));
   float dLval;
   float curr_max;
@@ -516,6 +516,13 @@ void createVGG16(float* inputImage){
   }
 
   featureMap = relu(featureMap, 224*224*64);
+
+
+    printf("after conv1_1 block========================\n");
+    int idx;
+    for(idx = 0; idx < 150; idx++){
+        printf("%f\n", featureMap[idx]);
+    }
   //printf("%f\n", featureMap[63]);
 
 
@@ -568,6 +575,12 @@ void createVGG16(float* inputImage){
   float* pooledOutput;
   pooledOutput = maxpool(newFeatureMap, 2, 224, 224, 64);
   free(newFeatureMap);
+
+  printf("after maxPooling========================\n");
+  for(idx = 0; idx < 150; idx++){
+      printf("%f\n", pooledOutput[idx]);
+  }
+
 
 
 
@@ -930,11 +943,11 @@ void createVGG16(float* inputImage){
             free(weights);
             free(convKernel);
             featureMap = relu(featureMap, 14*14*512);
-            printf("before maxPooling========================");
-            int idx;
-            for(idx = 0; idx < 150; idx++){
-                printf("%f\n", featureMap[idx]);
-            }
+            // printf("before maxPooling========================");
+            // int idx;
+            // for(idx = 0; idx < 150; idx++){
+            //     printf("%f\n", featureMap[idx]);
+            // }
 
 
 
@@ -948,10 +961,10 @@ void createVGG16(float* inputImage){
 
 
 
-            printf("after maxPooling========================");
-            for(idx = 0; idx < 7*512; idx++){
-                printf("%f\n", pooledOutput[idx]);
-            }
+            // printf("after maxPooling========================");
+            // for(idx = 0; idx < 7*512; idx++){
+            //     printf("%f\n", pooledOutput[idx]);
+            // }
 
 
             // WE GET CORRECT output FOR THE after maxPooling JOHN
