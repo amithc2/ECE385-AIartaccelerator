@@ -256,9 +256,13 @@ float* convFilter(float* input_image, float* weight, float bias, int rows, int c
   int y = 0;
   int z = 0;
   int index = 0;
-
+  int size;
+  size = (rows+2)*(cols+2)*depth;
   // zero-padding
-  float input_image_padded[(rows+2)*(cols+2)*(depth)];
+  float* input_image_padded;
+  input_image_padded = (float*)malloc(sizeof(float)*size);
+  // float* inputImagePadded;
+  // inputImagePadded = (float*)malloc(sizeof(float)*size);
   for(k = 0; k < (depth); k++){
     for(i = 0; i < (rows + 2); i++){
       for(j = 0; j < (cols + 2); j++){
@@ -278,8 +282,10 @@ float* convFilter(float* input_image, float* weight, float bias, int rows, int c
 
   // actual convolution
   float* filtered_image = (float*)malloc(sizeof(float)*(rows*cols));
+  //input_image_padded[ cols + (rows+1)*(cols+2) + (rows+2)*(cols+2)*(depth-1)] = 0;
 
-  float patch[m*n*depth];
+  float* patch;
+  patch = (float*)malloc(sizeof(float)*(3*3*depth));
 
   for(k = 0; k < 1; k++){
     for(i = 0; i < rows; i+=stride){
@@ -296,6 +302,7 @@ float* convFilter(float* input_image, float* weight, float bias, int rows, int c
               // printf("patchy : %d b : %d j : %d i: %d a : %d c : %d testmeme : %d\n", y, b, j, i, a, c, testmeme);
               // printf(" input padded : %f\n",input_image_padded[2] );
               patch[y] = input_image_padded[j+b + (i+a)*(cols+2) + (k+c)*(rows+2)*(cols+2)];
+
               // printf("patch : %f\n", patch[y]);
               // input_image_padded[(i+a) + (cols * ((j+b) + (depth * (k+c))))];
               y++;
@@ -303,13 +310,15 @@ float* convFilter(float* input_image, float* weight, float bias, int rows, int c
           }
         }
         float* matrixmult = matrixIndexMultiplier(patch, weight, 3, 3, 3, 3, depth);
-        filtered_image[index] = sum(matrixmult, 3*3*depth) + bias;
+        filtered_image[0] = sum(matrixmult, 3*3*depth) + bias;
         index++;
         free(matrixmult);
         z++;
       }
     }
   }
+  free(patch);
+  free(input_image_padded);
   return filtered_image;
 }
 
@@ -324,10 +333,12 @@ float* convFilter(float* input_image, float* weight, float bias, int rows, int c
     }
   }G
 */
-void relu(float* x, int size){
+float* relu(float* x, int size){
   for(int i = 0; i < size; i++)
     if(x[i] < 0)
       x[i] = 0.0;
+
+  return x;
 }
 
 // you might think we should use average pooling instead of max pooling for this use
@@ -457,7 +468,7 @@ void createVGG16(float* inputImage){
        k++;
      }
 
-    currFeatureMap = convFilter(featureMap, convKernel, layerBias[i], 224, 224, 36, 1);
+   currFeatureMap = convFilter(featureMap, convKernel, layerBias[i], 224, 224, 64, 1);
     for(m = 0; m < 224*224; m++){
       newFeatureMap[n] = currFeatureMap[m];
       n++;
@@ -466,346 +477,351 @@ void createVGG16(float* inputImage){
     filterIndex = filterIndex + 576;
   }
 
-
   free(featureMap);
   free(weights[0]);
   free(weights[1]);
   free(weights);
   free(convKernel);
 
+  newFeatureMap = relu(newFeatureMap, 224*224*64);
+
+  // perform Max Pooling
+  float* pooledOutput;
+  pooledOutput = maxpool(newFeatureMap, 2, 224, 224, 64);
+  free(newFeatureMap);
 
 
-  // // perform Max Pooling
-  // float* pooledOutput;
-  // pooledOutput = maxpool(newFeatureMap, 2, 224, 224, 64);
-  // free(newFeatureMap);
+  // CONVOLUTION LAYER 2
+  // Block 1
+  filterIndex = 0;
+  n = 0;
+  featureMap = (float*)malloc(sizeof(float)*112*112*128);
+  convKernel = (float*)malloc(sizeof(float)*576);
+  weights = getWeights("convlayer2_1.txt");
+    for(i = 0; i < 128; i++){
+      layerWeight = weights[0];
+      layerBias = weights[1];
+      k = 0;
+      for(j = filterIndex; j < filterIndex + 576; j++){
+        convKernel[k] = layerWeight[j];
+        k++;
+      }
+      currFeatureMap = convFilter(pooledOutput, convKernel, layerBias[i], 112, 112, 64, 1);
+      for(m = 0; m < 112*112; m++){
+        featureMap[n] = currFeatureMap[m];
+        n++;
+      }
+      free(currFeatureMap);
+      filterIndex = filterIndex + 576;
+    }
+    free(pooledOutput);
+    free(weights[0]);
+    free(weights[1]);
+    free(weights);
+    free(convKernel);
+
+   // Block 2
+   filterIndex = 0;
+   n = 0;
+   newFeatureMap = (float*)malloc(sizeof(float)*112*112*128);
+   convKernel = (float*)malloc(sizeof(float)*1152);
+   weights = getWeights("convlayer2_2.txt");
+     for(i = 0; i < 128; i++){
+       layerWeight = weights[0];
+       layerBias = weights[1];
+       k = 0;
+       for(j = filterIndex; j < filterIndex + 1152; j++){
+         convKernel[k] = layerWeight[j];
+         k++;
+       }
+       currFeatureMap = convFilter(featureMap, convKernel, layerBias[i], 112, 112, 64, 1);
+       for(m = 0; m < 112*112; m++){
+         newFeatureMap[n] = currFeatureMap[m];
+         n++;
+       }
+       free(currFeatureMap);
+       filterIndex = filterIndex + 1152;
+     }
+     free(featureMap);
+     free(weights[0]);
+     free(weights[1]);
+     free(weights);
+     free(convKernel);
 
 
-  // // CONVOLUTION LAYER 2
-  // // Block 1
-  // filterIndex = 0;
-  // n = 0;
-  // featureMap = (float*)malloc(sizeof(float)*112*112*128);
-  // convKernel = (float*)malloc(sizeof(float)*576);
-  // weights = getWeights("convlayer2_1.txt");
-  //   for(i = 0; i < 128; i++){
-  //     layerWeight = weights[0];
-  //     layerBias = weights[1];
-  //     k = 0;
-  //     for(j = filterIndex; j < filterIndex + 576; j++){
-  //       convKernel[k] = layerWeight[j];
-  //       k++;
-  //     }
-  //     currFeatureMap = convFilter(pooledOutput, convKernel, layerBias[i], 112, 112, 64, 1);
-  //     for(m = 0; m < 112*112; m++){
-  //       featureMap[n] = currFeatureMap[m];
-  //       n++;
-  //     }
-  //     free(currFeatureMap);
-  //     filterIndex = filterIndex + 576;
-  //   }
-  //   free(pooledOutput);
-  //   free(weights[0]);
-  //   free(weights[1]);
-  //   free(weights);
-  //   free(convKernel);
-  //
-  //  // Block 2
-  //  filterIndex = 0;
-  //  n = 0;
-  //  newFeatureMap = (float*)malloc(sizeof(float)*112*112*128);
-  //  convKernel = (float*)malloc(sizeof(float)*1152);
-  //  weights = getWeights("convlayer2_2.txt");
-  //    for(i = 0; i < 128; i++){
-  //      layerWeight = weights[0];
-  //      layerBias = weights[1];
-  //      k = 0;
-  //      for(j = filterIndex; j < filterIndex + 1152; j++){
-  //        convKernel[k] = layerWeight[j];
-  //        k++;
-  //      }
-  //      currFeatureMap = convFilter(featureMap, convKernel, layerBias[i], 112, 112, 64, 1);
-  //      for(m = 0; m < 112*112; m++){
-  //        newFeatureMap[n] = currFeatureMap[m];
-  //        n++;
-  //      }
-  //      free(currFeatureMap);
-  //      filterIndex = filterIndex + 1152;
-  //    }
-  //    free(featureMap);
-  //    free(weights[0]);
-  //    free(weights[1]);
-  //    free(weights);
-  //    free(convKernel);
-  //
-  // pooledOutput = maxpool(newFeatureMap, 2, 112, 112, 128);
-  // free(newFeatureMap);
-  //
-  // // CONVOLUTION LAYER 3
-  // // Block 1
-  // filterIndex = 0;
-  // n = 0;
-  // featureMap = (float*)malloc(sizeof(float)*56*56*256);
-  // convKernel = (float*)malloc(sizeof(float)*1152);
-  // weights = getWeights("convlayer3_1.txt");
-  //   for(i = 0; i < 256; i++){
-  //     layerWeight = weights[0];
-  //     layerBias = weights[1];
-  //     k = 0;
-  //     for(j = filterIndex; j < filterIndex + 1152; j++){
-  //       convKernel[k] = layerWeight[j];
-  //       k++;
-  //     }
-  //     currFeatureMap = convFilter(pooledOutput, convKernel, layerBias[i], 56, 56, 128, 1);
-  //     for(m = 0; m < 56*56; m++){
-  //       featureMap[n] = currFeatureMap[m];
-  //       n++;
-  //     }
-  //     free(currFeatureMap);
-  //     filterIndex = filterIndex + 1152;
-  //   }
-  //   free(pooledOutput);
-  //   free(weights[0]);
-  //   free(weights[1]);
-  //   free(weights);
-  //   free(convKernel);
-  //
-  //   // Block 2
-  //   filterIndex = 0;
-  //   n = 0;
-  //   newFeatureMap = (float*)malloc(sizeof(float)*56*56*256);
-  //   convKernel = (float*)malloc(sizeof(float)*2304);
-  //   weights = getWeights("convlayer3_2.txt");
-  //     for(i = 0; i < 256; i++){
-  //       layerWeight = weights[0];
-  //       layerBias = weights[1];
-  //       k = 0;
-  //       for(j = filterIndex; j < filterIndex + 2304; j++){
-  //         convKernel[k] = layerWeight[j];
-  //         k++;
-  //       }
-  //       currFeatureMap = convFilter(featureMap, convKernel, layerBias[i], 56, 56, 256, 1);
-  //       for(m = 0; m < 56*56; m++){
-  //         newFeatureMap[n] = currFeatureMap[m];
-  //         n++;
-  //       }
-  //       free(currFeatureMap);
-  //       filterIndex = filterIndex + 2304;
-  //     }
-  //     free(featureMap);
-  //     free(weights[0]);
-  //     free(weights[1]);
-  //     free(weights);
-  //     free(convKernel);
-  //
-  //   // Block 3
-  //   filterIndex = 0;
-  //   n = 0;
-  //   featureMap = (float*)malloc(sizeof(float)*56*56*256);
-  //   convKernel = (float*)malloc(sizeof(float)*2304);
-  //   weights = getWeights("convlayer3_3.txt");
-  //     for(i = 0; i < 256; i++){
-  //       layerWeight = weights[0];
-  //       layerBias = weights[1];
-  //       k = 0;
-  //       for(j = filterIndex; j < filterIndex + 2304; j++){
-  //         convKernel[k] = layerWeight[j];
-  //         k++;
-  //       }
-  //       currFeatureMap = convFilter(newFeatureMap, convKernel, layerBias[i], 56, 56, 256, 1);
-  //       for(m = 0; m < 56*56; m++){
-  //         featureMap[n] = currFeatureMap[m];
-  //         n++;
-  //       }
-  //       free(currFeatureMap);
-  //       filterIndex = filterIndex + 2304;
-  //     }
-  //     free(newFeatureMap);
-  //     free(weights[0]);
-  //     free(weights[1]);
-  //     free(weights);
-  //     free(convKernel);
-  //
-  //     pooledOutput = maxpool(featureMap, 2, 56, 56, 256);
-  //     free(featureMap);
-  //
-  //
-  //   // CONVOLUTION LAYER 4
-  //   // Block 1
-  //   filterIndex = 0;
-  //   n = 0;
-  //   featureMap = (float*)malloc(sizeof(float)*28*28*512);
-  //   convKernel = (float*)malloc(sizeof(float)*2304);
-  //   weights = getWeights("convlayer4_1.txt");
-  //     for(i = 0; i < 512; i++){
-  //       layerWeight = weights[0];
-  //       layerBias = weights[1];
-  //       k = 0;
-  //       for(j = filterIndex; j < filterIndex + 2304; j++){
-  //         convKernel[k] = layerWeight[j];
-  //         k++;
-  //       }
-  //       currFeatureMap = convFilter(pooledOutput, convKernel, layerBias[i], 28, 28, 256, 1);
-  //       for(m = 0; m < 28*28; m++){
-  //         featureMap[n] = currFeatureMap[m];
-  //         n++;
-  //       }
-  //       free(currFeatureMap);
-  //       filterIndex = filterIndex + 2304;
-  //     }
-  //     free(pooledOutput);
-  //     free(weights[0]);
-  //     free(weights[1]);
-  //     free(weights);
-  //     free(convKernel);
-  //
-  //
-  //     // Block 2
-  //     filterIndex = 0;
-  //     n = 0;
-  //     newFeatureMap = (float*)malloc(sizeof(float)*28*28*512);
-  //     convKernel = (float*)malloc(sizeof(float)*4608);
-  //     weights = getWeights("convlayer4_2.txt");
-  //       for(i = 0; i < 512; i++){
-  //         layerWeight = weights[0];
-  //         layerBias = weights[1];
-  //         k = 0;
-  //         for(j = filterIndex; j < filterIndex + 4608; j++){
-  //           convKernel[k] = layerWeight[j];
-  //           k++;
-  //         }
-  //         currFeatureMap = convFilter(featureMap, convKernel, layerBias[i], 28, 28, 512, 1);
-  //         for(m = 0; m < 28*28; m++){
-  //           newFeatureMap[n] = currFeatureMap[m];
-  //           n++;
-  //         }
-  //         free(currFeatureMap);
-  //         filterIndex = filterIndex + 4608;
-  //       }
-  //       free(featureMap);
-  //       free(weights[0]);
-  //       free(weights[1]);
-  //       free(weights);
-  //       free(convKernel);
-  //
-  //       // Block 3
-  //       filterIndex = 0;
-  //       n = 0;
-  //       featureMap = (float*)malloc(sizeof(float)*28*28*512);
-  //       convKernel = (float*)malloc(sizeof(float)*4608);
-  //       weights = getWeights("convlayer4_3.txt");
-  //         for(i = 0; i < 512; i++){
-  //           layerWeight = weights[0];
-  //           layerBias = weights[1];
-  //           k = 0;
-  //           for(j = filterIndex; j < filterIndex + 4608; j++){
-  //             convKernel[k] = layerWeight[j];
-  //             k++;
-  //           }
-  //           currFeatureMap = convFilter(newFeatureMap, convKernel, layerBias[i], 28, 28, 512, 1);
-  //           for(m = 0; m < 28*28; m++){
-  //             featureMap[n] = currFeatureMap[m];
-  //             n++;
-  //           }
-  //           free(currFeatureMap);
-  //           filterIndex = filterIndex + 4608;
-  //         }
-  //         free(newFeatureMap);
-  //         free(weights[0]);
-  //         free(weights[1]);
-  //         free(weights);
-  //         free(convKernel);
-  //
-  //         pooledOutput = maxpool(featureMap, 2, 28, 28, 512);
-  //         free(featureMap);
-  //
-  //       // CONVOLUTION LAYER 5
-  //       // Block 1
-  //       filterIndex = 0;
-  //       n = 0;
-  //       featureMap = (float*)malloc(sizeof(float)*14*14*512);
-  //       convKernel = (float*)malloc(sizeof(float)*4608);
-  //       weights = getWeights("convlayer5_1.txt");
-  //         for(i = 0; i < 512; i++){
-  //           layerWeight = weights[0];
-  //           layerBias = weights[1];
-  //           k = 0;
-  //           for(j = filterIndex; j < filterIndex + 4608; j++){
-  //             convKernel[k] = layerWeight[j];
-  //             k++;
-  //           }
-  //           currFeatureMap = convFilter(pooledOutput, convKernel, layerBias[i], 14, 14, 512, 1);
-  //           for(m = 0; m < 14*14; m++){
-  //             featureMap[n] = currFeatureMap[m];
-  //             n++;
-  //           }
-  //           free(currFeatureMap);
-  //           filterIndex = filterIndex + 4608;
-  //         }
-  //         free(pooledOutput);
-  //         free(weights[0]);
-  //         free(weights[1]);
-  //         free(weights);
-  //         free(convKernel);
-  //
-  //         // Block 2
-  //         filterIndex = 0;
-  //         n = 0;
-  //         newFeatureMap = (float*)malloc(sizeof(float)*14*14*512);
-  //         convKernel = (float*)malloc(sizeof(float)*4608);
-  //         weights = getWeights("convlayer5_2.txt");
-  //           for(i = 0; i < 512; i++){
-  //             layerWeight = weights[0];
-  //             layerBias = weights[1];
-  //             k = 0;
-  //             for(j = filterIndex; j < filterIndex + 4608; j++){
-  //               convKernel[k] = layerWeight[j];
-  //               k++;
-  //             }
-  //             currFeatureMap = convFilter(featureMap, convKernel, layerBias[i], 14, 14, 512, 1);
-  //             for(m = 0; m < 14*14; m++){
-  //               newFeatureMap[n] = currFeatureMap[m];
-  //               n++;
-  //             }
-  //             free(currFeatureMap);
-  //             filterIndex = filterIndex + 4608;
-  //           }
-  //           free(featureMap);
-  //           free(weights[0]);
-  //           free(weights[1]);
-  //           free(weights);
-  //           free(convKernel);
-  //
-  //         // Block 3
-  //         filterIndex = 0;
-  //         n = 0;
-  //         featureMap = (float*)malloc(sizeof(float)*14*14*512);
-  //         convKernel = (float*)malloc(sizeof(float)*4608);
-  //         weights = getWeights("convlayer5_3.txt");
-  //           for(i = 0; i < 512; i++){
-  //             layerWeight = weights[0];
-  //             layerBias = weights[1];
-  //             k = 0;
-  //             for(j = filterIndex; j < filterIndex + 4608; j++){
-  //               convKernel[k] = layerWeight[j];
-  //               k++;
-  //             }
-  //             currFeatureMap = convFilter(newFeatureMap, convKernel, layerBias[i], 14, 14, 512, 1);
-  //             for(m = 0; m < 14*14; m++){
-  //               featureMap[n] = currFeatureMap[m];
-  //               n++;
-  //             }
-  //             free(currFeatureMap);
-  //             filterIndex = filterIndex + 4608;
-  //           }
-  //           free(newFeatureMap);
-  //           free(weights[0]);
-  //           free(weights[1]);
-  //           free(weights);
-  //           free(convKernel);
-  //
-  //           pooledOutput = maxpool(featureMap, 2, 14, 14, 512);
-  //           free(featureMap);
+  newFeatureMap = relu(newFeatureMap, 112*112*128);
+  pooledOutput = maxpool(newFeatureMap, 2, 112, 112, 128);
+  free(newFeatureMap);
+
+  // CONVOLUTION LAYER 3
+  // Block 1
+  filterIndex = 0;
+  n = 0;
+  featureMap = (float*)malloc(sizeof(float)*56*56*256);
+  convKernel = (float*)malloc(sizeof(float)*1152);
+  weights = getWeights("convlayer3_1.txt");
+    for(i = 0; i < 256; i++){
+      layerWeight = weights[0];
+      layerBias = weights[1];
+      k = 0;
+      for(j = filterIndex; j < filterIndex + 1152; j++){
+        convKernel[k] = layerWeight[j];
+        k++;
+      }
+      currFeatureMap = convFilter(pooledOutput, convKernel, layerBias[i], 56, 56, 128, 1);
+      for(m = 0; m < 56*56; m++){
+        featureMap[n] = currFeatureMap[m];
+        n++;
+      }
+      free(currFeatureMap);
+      filterIndex = filterIndex + 1152;
+    }
+    free(pooledOutput);
+    free(weights[0]);
+    free(weights[1]);
+    free(weights);
+    free(convKernel);
+
+    // Block 2
+    filterIndex = 0;
+    n = 0;
+    newFeatureMap = (float*)malloc(sizeof(float)*56*56*256);
+    convKernel = (float*)malloc(sizeof(float)*2304);
+    weights = getWeights("convlayer3_2.txt");
+      for(i = 0; i < 256; i++){
+        layerWeight = weights[0];
+        layerBias = weights[1];
+        k = 0;
+        for(j = filterIndex; j < filterIndex + 2304; j++){
+          convKernel[k] = layerWeight[j];
+          k++;
+        }
+        currFeatureMap = convFilter(featureMap, convKernel, layerBias[i], 56, 56, 256, 1);
+        for(m = 0; m < 56*56; m++){
+          newFeatureMap[n] = currFeatureMap[m];
+          n++;
+        }
+        free(currFeatureMap);
+        filterIndex = filterIndex + 2304;
+      }
+      free(featureMap);
+      free(weights[0]);
+      free(weights[1]);
+      free(weights);
+      free(convKernel);
+
+    // Block 3
+    filterIndex = 0;
+    n = 0;
+    featureMap = (float*)malloc(sizeof(float)*56*56*256);
+    convKernel = (float*)malloc(sizeof(float)*2304);
+    weights = getWeights("convlayer3_3.txt");
+      for(i = 0; i < 256; i++){
+        layerWeight = weights[0];
+        layerBias = weights[1];
+        k = 0;
+        for(j = filterIndex; j < filterIndex + 2304; j++){
+          convKernel[k] = layerWeight[j];
+          k++;
+        }
+        currFeatureMap = convFilter(newFeatureMap, convKernel, layerBias[i], 56, 56, 256, 1);
+        for(m = 0; m < 56*56; m++){
+          featureMap[n] = currFeatureMap[m];
+          n++;
+        }
+        free(currFeatureMap);
+        filterIndex = filterIndex + 2304;
+      }
+      free(newFeatureMap);
+      free(weights[0]);
+      free(weights[1]);
+      free(weights);
+      free(convKernel);
+
+
+      featureMap = relu(featureMap, 56*56*256);
+      pooledOutput = maxpool(featureMap, 2, 56, 56, 256);
+      free(featureMap);
+
+
+    // CONVOLUTION LAYER 4
+    // Block 1
+    filterIndex = 0;
+    n = 0;
+    featureMap = (float*)malloc(sizeof(float)*28*28*512);
+    convKernel = (float*)malloc(sizeof(float)*2304);
+    weights = getWeights("convlayer4_1.txt");
+      for(i = 0; i < 512; i++){
+        layerWeight = weights[0];
+        layerBias = weights[1];
+        k = 0;
+        for(j = filterIndex; j < filterIndex + 2304; j++){
+          convKernel[k] = layerWeight[j];
+          k++;
+        }
+        currFeatureMap = convFilter(pooledOutput, convKernel, layerBias[i], 28, 28, 256, 1);
+        for(m = 0; m < 28*28; m++){
+          featureMap[n] = currFeatureMap[m];
+          n++;
+        }
+        free(currFeatureMap);
+        filterIndex = filterIndex + 2304;
+      }
+      free(pooledOutput);
+      free(weights[0]);
+      free(weights[1]);
+      free(weights);
+      free(convKernel);
+
+
+      // Block 2
+      filterIndex = 0;
+      n = 0;
+      newFeatureMap = (float*)malloc(sizeof(float)*28*28*512);
+      convKernel = (float*)malloc(sizeof(float)*4608);
+      weights = getWeights("convlayer4_2.txt");
+        for(i = 0; i < 512; i++){
+          layerWeight = weights[0];
+          layerBias = weights[1];
+          k = 0;
+          for(j = filterIndex; j < filterIndex + 4608; j++){
+            convKernel[k] = layerWeight[j];
+            k++;
+          }
+          currFeatureMap = convFilter(featureMap, convKernel, layerBias[i], 28, 28, 512, 1);
+          for(m = 0; m < 28*28; m++){
+            newFeatureMap[n] = currFeatureMap[m];
+            n++;
+          }
+          free(currFeatureMap);
+          filterIndex = filterIndex + 4608;
+        }
+        free(featureMap);
+        free(weights[0]);
+        free(weights[1]);
+        free(weights);
+        free(convKernel);
+
+        // Block 3
+        filterIndex = 0;
+        n = 0;
+        featureMap = (float*)malloc(sizeof(float)*28*28*512);
+        convKernel = (float*)malloc(sizeof(float)*4608);
+        weights = getWeights("convlayer4_3.txt");
+          for(i = 0; i < 512; i++){
+            layerWeight = weights[0];
+            layerBias = weights[1];
+            k = 0;
+            for(j = filterIndex; j < filterIndex + 4608; j++){
+              convKernel[k] = layerWeight[j];
+              k++;
+            }
+            currFeatureMap = convFilter(newFeatureMap, convKernel, layerBias[i], 28, 28, 512, 1);
+            for(m = 0; m < 28*28; m++){
+              featureMap[n] = currFeatureMap[m];
+              n++;
+            }
+            free(currFeatureMap);
+            filterIndex = filterIndex + 4608;
+          }
+          free(newFeatureMap);
+          free(weights[0]);
+          free(weights[1]);
+          free(weights);
+          free(convKernel);
+
+          featureMap = relu(featureMap, 28*28*512);
+          pooledOutput = maxpool(featureMap, 2, 28, 28, 512);
+          free(featureMap);
+
+        // CONVOLUTION LAYER 5
+        // Block 1
+        filterIndex = 0;
+        n = 0;
+        featureMap = (float*)malloc(sizeof(float)*14*14*512);
+        convKernel = (float*)malloc(sizeof(float)*4608);
+        weights = getWeights("convlayer5_1.txt");
+          for(i = 0; i < 512; i++){
+            layerWeight = weights[0];
+            layerBias = weights[1];
+            k = 0;
+            for(j = filterIndex; j < filterIndex + 4608; j++){
+              convKernel[k] = layerWeight[j];
+              k++;
+            }
+            currFeatureMap = convFilter(pooledOutput, convKernel, layerBias[i], 14, 14, 512, 1);
+            for(m = 0; m < 14*14; m++){
+              featureMap[n] = currFeatureMap[m];
+              n++;
+            }
+            free(currFeatureMap);
+            filterIndex = filterIndex + 4608;
+          }
+          free(pooledOutput);
+          free(weights[0]);
+          free(weights[1]);
+          free(weights);
+          free(convKernel);
+
+          // Block 2
+          filterIndex = 0;
+          n = 0;
+          newFeatureMap = (float*)malloc(sizeof(float)*14*14*512);
+          convKernel = (float*)malloc(sizeof(float)*4608);
+          weights = getWeights("convlayer5_2.txt");
+            for(i = 0; i < 512; i++){
+              layerWeight = weights[0];
+              layerBias = weights[1];
+              k = 0;
+              for(j = filterIndex; j < filterIndex + 4608; j++){
+                convKernel[k] = layerWeight[j];
+                k++;
+              }
+              currFeatureMap = convFilter(featureMap, convKernel, layerBias[i], 14, 14, 512, 1);
+              for(m = 0; m < 14*14; m++){
+                newFeatureMap[n] = currFeatureMap[m];
+                n++;
+              }
+              free(currFeatureMap);
+              filterIndex = filterIndex + 4608;
+            }
+            free(featureMap);
+            free(weights[0]);
+            free(weights[1]);
+            free(weights);
+            free(convKernel);
+
+          // Block 3
+          filterIndex = 0;
+          n = 0;
+          featureMap = (float*)malloc(sizeof(float)*14*14*512);
+          convKernel = (float*)malloc(sizeof(float)*4608);
+          weights = getWeights("convlayer5_3.txt");
+            for(i = 0; i < 512; i++){
+              layerWeight = weights[0];
+              layerBias = weights[1];
+              k = 0;
+              for(j = filterIndex; j < filterIndex + 4608; j++){
+                convKernel[k] = layerWeight[j];
+                k++;
+              }
+              currFeatureMap = convFilter(newFeatureMap, convKernel, layerBias[i], 14, 14, 512, 1);
+              for(m = 0; m < 14*14; m++){
+                featureMap[n] = currFeatureMap[m];
+                n++;
+              }
+              free(currFeatureMap);
+              filterIndex = filterIndex + 4608;
+            }
+            free(newFeatureMap);
+            free(weights[0]);
+            free(weights[1]);
+            free(weights);
+            free(convKernel);
+
+            featureMap = relu(featureMap, 14*14*512);
+            pooledOutput = maxpool(featureMap, 2, 14, 14, 512);
+            free(featureMap);
 
 }
 
