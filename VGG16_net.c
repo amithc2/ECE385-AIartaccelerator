@@ -5,11 +5,19 @@
 // IMPLEMENTATION OF VGG16 IN C:
 
 typedef struct layers{
-  float* getLayer1;
-  float* getLayer2;
-  float* getLayer3;
-  float* getLayer4;
-  float* getLayer5;
+  float* getConv1_1;
+  float* getConv1_2;
+  float* getConv2_1;
+  float* getConv2_2;
+  float* getConv3_1;
+  float* getConv3_2;
+  float* getConv3_3;
+  float* getConv4_1;
+  float* getConv4_2;
+  float* getConv4_3;
+  float* getConv5_1;
+  float* getConv5_2;
+  float* getConv5_3;
 } layers;
 
 // Dense Layer
@@ -675,7 +683,7 @@ float* softmax(float* x, int size){
 
 layers createVGG16(float* inputImage){
 
-  layers allLayerOuts;
+  layers layerList;
   float* prevImage;
   float** weights;
   float* layerWeight;
@@ -717,7 +725,7 @@ layers createVGG16(float* inputImage){
   }
 
   featureMap = relu(featureMap, 224*224*64);
-
+  layerList.getConv1_1 = featureMap;
     //
     // printf("after conv1_1 block========================\n");
     // int idx;
@@ -763,7 +771,7 @@ layers createVGG16(float* inputImage){
     filterIndex = filterIndex + 576;
   }
 
-  free(featureMap);
+  //free(featureMap);
   free(weights[0]);
   free(weights[1]);
   free(weights);
@@ -781,8 +789,7 @@ layers createVGG16(float* inputImage){
   // for(idx = 0; idx < 150; idx++){
   //     printf("%f\n", pooledOutput[idx]);
   // }
-
-  allLayerOuts.getLayer1 = pooledOutput;
+  layerList.getConv1_2 = pooledOutput;
 
 
 
@@ -828,7 +835,7 @@ layers createVGG16(float* inputImage){
 
     featureMap = relu(featureMap, 112*112*128);
 
-
+    layerList.getConv2_1 = featureMap;
    // Block 2
    filterIndex = 0;
    n = 0;
@@ -851,7 +858,7 @@ layers createVGG16(float* inputImage){
        free(currFeatureMap);
        filterIndex = filterIndex + 1152;
      }
-     free(featureMap);
+     //free(featureMap);
      free(weights[0]);
      free(weights[1]);
      free(weights);
@@ -862,7 +869,7 @@ layers createVGG16(float* inputImage){
   free(newFeatureMap);
 
 
-  allLayerOuts.getLayer2 = pooledOutput2;
+  layerList.getConv2_2 = pooledOutput2;
 
   // CONVOLUTION LAYER 3
   // Block 1
@@ -895,6 +902,7 @@ layers createVGG16(float* inputImage){
     free(convKernel);
     featureMap = relu(featureMap, 56*56*256);
 
+    layerList.getConv3_1 = featureMap;
     // Block 2
     filterIndex = 0;
     n = 0;
@@ -917,13 +925,15 @@ layers createVGG16(float* inputImage){
         free(currFeatureMap);
         filterIndex = filterIndex + 2304;
       }
-      free(featureMap);
+      //free(featureMap);
       free(weights[0]);
       free(weights[1]);
       free(weights);
       free(convKernel);
 
     newFeatureMap = relu(newFeatureMap, 56*56*256);
+    layerList.getConv3_2 = newFeatureMap;
+
     // Block 3
     filterIndex = 0;
     n = 0;
@@ -946,7 +956,7 @@ layers createVGG16(float* inputImage){
         free(currFeatureMap);
         filterIndex = filterIndex + 2304;
       }
-      free(newFeatureMap);
+      //free(newFeatureMap);
       free(weights[0]);
       free(weights[1]);
       free(weights);
@@ -958,7 +968,7 @@ layers createVGG16(float* inputImage){
       free(featureMap);
 
 
-      allLayerOuts.getLayer3 = pooledOutput3;
+      layerList.getConv3_3 = pooledOutput3;
 
       // printf("After maxpooling========================");
       // int idx;
@@ -1000,7 +1010,7 @@ layers createVGG16(float* inputImage){
 
 
       featureMap = relu(featureMap, 28*28*512);
-
+      layerList.getConv4_1 = featureMap;
       // Block 2
       filterIndex = 0;
       n = 0;
@@ -1023,14 +1033,14 @@ layers createVGG16(float* inputImage){
           free(currFeatureMap);
           filterIndex = filterIndex + 4608;
         }
-        free(featureMap);
+        //free(featureMap);
         free(weights[0]);
         free(weights[1]);
         free(weights);
         free(convKernel);
 
         newFeatureMap = relu(newFeatureMap, 28*28*512);
-
+        layerList.getConv4_2 = newFeatureMap;
         // Block 3
         filterIndex = 0;
         n = 0;
@@ -1053,7 +1063,7 @@ layers createVGG16(float* inputImage){
             free(currFeatureMap);
             filterIndex = filterIndex + 4608;
           }
-          free(newFeatureMap);
+        //  free(newFeatureMap);
           free(weights[0]);
           free(weights[1]);
           free(weights);
@@ -1062,9 +1072,7 @@ layers createVGG16(float* inputImage){
           featureMap = relu(featureMap, 28*28*512);
           pooledOutput4 = maxpool(featureMap, 2, 28, 28, 512);
           free(featureMap);
-
-
-        allLayerOuts.getLayer4 = pooledOutput4;
+          layerList.getConv4_3 = pooledOutput4;
 
         // CONVOLUTION LAYER 5
         // Block 1
@@ -1097,7 +1105,7 @@ layers createVGG16(float* inputImage){
           free(convKernel);
 
           featureMap = relu(featureMap, 14*14*512);
-
+          layerList.getConv5_1 = featureMap;
           // Block 2
           filterIndex = 0;
           n = 0;
@@ -1120,14 +1128,14 @@ layers createVGG16(float* inputImage){
               free(currFeatureMap);
               filterIndex = filterIndex + 4608;
             }
-            free(featureMap);
+            //free(featureMap);
             free(weights[0]);
             free(weights[1]);
             free(weights);
             free(convKernel);
 
           newFeatureMap = relu(newFeatureMap, 14*14*512);
-
+          layerList.getConv5_2 = newFeatureMap;
           // Block 3
           filterIndex = 0;
           n = 0;
@@ -1150,7 +1158,7 @@ layers createVGG16(float* inputImage){
               free(currFeatureMap);
               filterIndex = filterIndex + 4608;
             }
-            free(newFeatureMap);
+            //free(newFeatureMap);
             free(weights[0]);
             free(weights[1]);
             free(weights);
@@ -1179,7 +1187,7 @@ layers createVGG16(float* inputImage){
 
 
             pooledOutput5 = maxpool(featureMap, 2, 14, 14, 512);
-            allLayerOuts.getLayer5 = pooledOutput5;
+            layerList.getConv5_3 = pooledOutput5;
             //
             //
             // float* desiredBackProp;
@@ -1282,7 +1290,7 @@ layers createVGG16(float* inputImage){
             free(reluSave);
             free(backMaxOut);
             free(backReluOut);
-            return allLayerOuts;
+            return layerList;
 
 
 
