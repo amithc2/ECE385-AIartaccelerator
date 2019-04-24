@@ -5,11 +5,19 @@
 // IMPLEMENTATION OF VGG16 IN C:
 
 typedef struct layers{
-  float* getLayer1;
-  float* getLayer2;
-  float* getLayer3;
-  float* getLayer4;
-  float* getLayer5;
+  float* getConv1_1;
+  float* getConv1_2;
+  float* getConv2_1;
+  float* getConv2_2;
+  float* getConv3_1;
+  float* getConv3_2;
+  float* getConv3_3;
+  float* getConv4_1;
+  float* getConv4_2;
+  float* getConv4_3;
+  float* getConv5_1;
+  float* getConv5_2;
+  float* getConv5_3;
 } layers;
 
 // Dense Layer
@@ -425,10 +433,7 @@ float* maxpool2(float* x, int stride, int rows, int cols, int depth){
 // backprop for maxpool
 // essentially inputs that are not the "max" are given 0 since they don't affect the output
 float* backMax(float* dL, float* result, float* x, int stride, int rows, int cols, int depth){
-<<<<<<< HEAD
   int cnt = 0;
-=======
->>>>>>> 798a4e8f36cd74bf795bb33b82590752d3f7892d
   // dL is input for backprop
   // result is output of maxPooling
   // input for maxPooling
@@ -452,19 +457,11 @@ float* backMax(float* dL, float* result, float* x, int stride, int rows, int col
       for(int j = 0; j < cols; j+=stride){
           dLval = dL[y];
           curr_max = result[y];
-<<<<<<< HEAD
           cnt++;
-=======
->>>>>>> 798a4e8f36cd74bf795bb33b82590752d3f7892d
           y++;
           numOccurences = 0;
           for(int a = 0; a < 2; a++){
             for(int b = 0; b < 2; b++){
-<<<<<<< HEAD
-              if(x[j+b + (i+a)*cols + (k)*(rows*cols)] != curr_max){
-                dX[j+b + (i+a)*cols + (k)*(rows*cols)] = 0.0;
-              }
-=======
               if(x[j+b + (i+a)*cols + (k)*(rows*cols)] < curr_max){
                 dX[j+b + (i+a)*cols + (k)*(rows*cols)] = 0.0;
               }
@@ -477,7 +474,6 @@ float* backMax(float* dL, float* result, float* x, int stride, int rows, int col
                   dX[j+b + (i+a)*cols + (k)*(rows*cols)] = 0.0;
                 }
               }
->>>>>>> 798a4e8f36cd74bf795bb33b82590752d3f7892d
               else{
                 dX[j+b + (i+a)*cols + (k)*(rows*cols)] = 1.0;
               }
@@ -689,7 +685,7 @@ float* softmax(float* x, int size){
 
 layers createVGG16(float* inputImage){
 
-  layers allLayerOuts;
+  layers layerList;
   float* prevImage;
   float** weights;
   float* layerWeight;
@@ -732,21 +728,18 @@ layers createVGG16(float* inputImage){
 
   featureMap = relu(featureMap, 224*224*64);
 
-<<<<<<< HEAD
 
     printf("after conv1_1 block========================\n");
     int idx;
     for(idx = 0; idx < 150; idx++){
         printf("%f\n", featureMap[idx]);
     }
-=======
     //
     // printf("after conv1_1 block========================\n");
     // int idx;
     // for(idx = 0; idx < 150; idx++){
     //     printf("%f\n", featureMap[idx]);
     // }
->>>>>>> 798a4e8f36cd74bf795bb33b82590752d3f7892d
   //printf("%f\n", featureMap[63]);
 
 
@@ -786,7 +779,7 @@ layers createVGG16(float* inputImage){
     filterIndex = filterIndex + 576;
   }
 
-  free(featureMap);
+  //free(featureMap);
   free(weights[0]);
   free(weights[1]);
   free(weights);
@@ -804,8 +797,7 @@ layers createVGG16(float* inputImage){
   // for(idx = 0; idx < 150; idx++){
   //     printf("%f\n", pooledOutput[idx]);
   // }
-
-  allLayerOuts.getLayer1 = pooledOutput;
+  layerList.getConv1_2 = pooledOutput;
 
 
 
@@ -851,7 +843,7 @@ layers createVGG16(float* inputImage){
 
     featureMap = relu(featureMap, 112*112*128);
 
-
+    layerList.getConv2_1 = featureMap;
    // Block 2
    filterIndex = 0;
    n = 0;
@@ -874,7 +866,7 @@ layers createVGG16(float* inputImage){
        free(currFeatureMap);
        filterIndex = filterIndex + 1152;
      }
-     free(featureMap);
+     //free(featureMap);
      free(weights[0]);
      free(weights[1]);
      free(weights);
@@ -885,7 +877,7 @@ layers createVGG16(float* inputImage){
   free(newFeatureMap);
 
 
-  allLayerOuts.getLayer2 = pooledOutput2;
+  layerList.getConv2_2 = pooledOutput2;
 
   // CONVOLUTION LAYER 3
   // Block 1
@@ -918,6 +910,7 @@ layers createVGG16(float* inputImage){
     free(convKernel);
     featureMap = relu(featureMap, 56*56*256);
 
+    layerList.getConv3_1 = featureMap;
     // Block 2
     filterIndex = 0;
     n = 0;
@@ -940,13 +933,15 @@ layers createVGG16(float* inputImage){
         free(currFeatureMap);
         filterIndex = filterIndex + 2304;
       }
-      free(featureMap);
+      //free(featureMap);
       free(weights[0]);
       free(weights[1]);
       free(weights);
       free(convKernel);
 
     newFeatureMap = relu(newFeatureMap, 56*56*256);
+    layerList.getConv3_2 = newFeatureMap;
+
     // Block 3
     filterIndex = 0;
     n = 0;
@@ -969,7 +964,7 @@ layers createVGG16(float* inputImage){
         free(currFeatureMap);
         filterIndex = filterIndex + 2304;
       }
-      free(newFeatureMap);
+      //free(newFeatureMap);
       free(weights[0]);
       free(weights[1]);
       free(weights);
@@ -981,7 +976,7 @@ layers createVGG16(float* inputImage){
       free(featureMap);
 
 
-      allLayerOuts.getLayer3 = pooledOutput3;
+      layerList.getConv3_3 = pooledOutput3;
 
       // printf("After maxpooling========================");
       // int idx;
@@ -1023,7 +1018,7 @@ layers createVGG16(float* inputImage){
 
 
       featureMap = relu(featureMap, 28*28*512);
-
+      layerList.getConv4_1 = featureMap;
       // Block 2
       filterIndex = 0;
       n = 0;
@@ -1046,14 +1041,14 @@ layers createVGG16(float* inputImage){
           free(currFeatureMap);
           filterIndex = filterIndex + 4608;
         }
-        free(featureMap);
+        //free(featureMap);
         free(weights[0]);
         free(weights[1]);
         free(weights);
         free(convKernel);
 
         newFeatureMap = relu(newFeatureMap, 28*28*512);
-
+        layerList.getConv4_2 = newFeatureMap;
         // Block 3
         filterIndex = 0;
         n = 0;
@@ -1076,7 +1071,7 @@ layers createVGG16(float* inputImage){
             free(currFeatureMap);
             filterIndex = filterIndex + 4608;
           }
-          free(newFeatureMap);
+        //  free(newFeatureMap);
           free(weights[0]);
           free(weights[1]);
           free(weights);
@@ -1085,9 +1080,7 @@ layers createVGG16(float* inputImage){
           featureMap = relu(featureMap, 28*28*512);
           pooledOutput4 = maxpool(featureMap, 2, 28, 28, 512);
           free(featureMap);
-
-
-        allLayerOuts.getLayer4 = pooledOutput4;
+          layerList.getConv4_3 = pooledOutput4;
 
         // CONVOLUTION LAYER 5
         // Block 1
@@ -1120,7 +1113,7 @@ layers createVGG16(float* inputImage){
           free(convKernel);
 
           featureMap = relu(featureMap, 14*14*512);
-
+          layerList.getConv5_1 = featureMap;
           // Block 2
           filterIndex = 0;
           n = 0;
@@ -1143,14 +1136,14 @@ layers createVGG16(float* inputImage){
               free(currFeatureMap);
               filterIndex = filterIndex + 4608;
             }
-            free(featureMap);
+            //free(featureMap);
             free(weights[0]);
             free(weights[1]);
             free(weights);
             free(convKernel);
 
           newFeatureMap = relu(newFeatureMap, 14*14*512);
-
+          layerList.getConv5_2 = newFeatureMap;
           // Block 3
           filterIndex = 0;
           n = 0;
@@ -1173,30 +1166,17 @@ layers createVGG16(float* inputImage){
               free(currFeatureMap);
               filterIndex = filterIndex + 4608;
             }
-            free(newFeatureMap);
+            //free(newFeatureMap);
             free(weights[0]);
             free(weights[1]);
             free(weights);
             free(convKernel);
-<<<<<<< HEAD
-=======
-
-            float* reluSave;
-            reluSave = (float*)malloc(sizeof(float)*14*14*512);
-            for(i = 0; i < (14*14*512); i++){
-              reluSave[i] = featureMap[i];
-            }
->>>>>>> 798a4e8f36cd74bf795bb33b82590752d3f7892d
             featureMap = relu(featureMap, 14*14*512);
             // printf("before maxPooling========================");
             // int idx;
             // for(idx = 0; idx < 150; idx++){
             //     printf("%f\n", featureMap[idx]);
-<<<<<<< HEAD
             // // }
-=======
-            // }
->>>>>>> 798a4e8f36cd74bf795bb33b82590752d3f7892d
             // FILE* featureMapFile;
             // if((featureMapFile = fopen("featureMaptestFile.txt", "w")) == NULL){
             //   printf("Content file not found!");
@@ -1206,7 +1186,6 @@ layers createVGG16(float* inputImage){
             // for(i = 0; i < (14*14*512); i++){
             //   fprintf(featureMapFile, "%f\n", featureMap[i]);
             // }
-<<<<<<< HEAD
             //
             // FILE* l;
             // if((bleh = fopen("maxpool2.txt", "w")) == NULL){
@@ -1215,13 +1194,6 @@ layers createVGG16(float* inputImage){
             // }
             //
             pooledOutput = maxpool(featureMap, 2, 14, 14, 512);
-=======
-
-
-<<<<<<< HEAD
-            pooledOutput = maxpool(featureMap, 2, 14, 14, 512);
-
->>>>>>> 798a4e8f36cd74bf795bb33b82590752d3f7892d
 =======
             pooledOutput5 = maxpool(featureMap, 2, 14, 14, 512);
             allLayerOuts.getLayer5 = pooledOutput5;
@@ -1244,28 +1216,13 @@ layers createVGG16(float* inputImage){
             //     printf("%f\n", featureMap[idx]);
             // }
             // WE GET ALL ZEROS FOR THE before maxPooling JOHN
-<<<<<<< HEAD
 
-=======
-            FILE* beforeRelu;
-            if((beforeRelu = fopen("featureMaptestFile.txt", "w")) == NULL){
-              printf("Content file not found!");
-              //return;
-            }
-            for(i = 0; i < (512*14); i++){
-              for(j = 0; j < 14; j++){
-                fprintf(beforeRelu, "%f ", reluSave[i*14+j]);
-              }
-              fprintf(beforeRelu, "\n");
-            }
->>>>>>> 798a4e8f36cd74bf795bb33b82590752d3f7892d
 
 
             // printf("after maxPooling========================");
             // for(idx = 0; idx < 7*512; idx++){
             //     printf("%f\n", pooledOutput[idx]);
             // }
-<<<<<<< HEAD
 
 
             // FILE* maxPooledFeatureMap;
@@ -1280,41 +1237,6 @@ layers createVGG16(float* inputImage){
             //
             float* backMaxOut;
             backMaxOut = backMax(pooledOutput, pooledOutput, featureMap, 2, 14, 14, 512);
-=======
-
-            //
-            // FILE* maxPooledFeatureMap;
-            // if((maxPooledFeatureMap = fopen("maxPooltestFile.txt", "w")) == NULL){
-            //   printf("Content file not found!");
-            //   return;
-            // }
-            //
-            // for(i = 0; i < (7*7*512); i++){
-            //   fprintf(maxPooledFeatureMap, "%f\n", pooledOutput[i]);
-            // }
-            //
-            float* backMaxOut;
-            backMaxOut = backMax(pooledOutput5, pooledOutput5, featureMap, 2, 14, 14, 512);
-            free(featureMap);
-            //free(pooledOutput);
-
-            FILE* maxPoolOut;
-            if((maxPoolOut = fopen("maxPooltestFile.txt", "w")) == NULL){
-              printf("Content file not found!");
-              //return;
-            }
-            for(i = 0; i < (512*14); i++){
-              for(j = 0; j < 14; j++){
-                fprintf(maxPoolOut, "%f ", backMaxOut[i*14+j]);
-              }
-              fprintf(maxPoolOut, "\n");
-            }
-
-
-
-            float* backReluOut;
-            backReluOut = backRelu(backMaxOut, reluSave, 14, 14, 512);
->>>>>>> 798a4e8f36cd74bf795bb33b82590752d3f7892d
             // FILE* backPropOut;
             // if((backPropOut = fopen("backpropMax.txt", "w")) == NULL){
             //   printf("Content file not found!");
@@ -1349,7 +1271,7 @@ layers createVGG16(float* inputImage){
             free(reluSave);
             free(backMaxOut);
             free(backReluOut);
-            return allLayerOuts;
+            return layerList;
 
 
 
