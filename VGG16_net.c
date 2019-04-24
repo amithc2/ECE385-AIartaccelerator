@@ -388,23 +388,49 @@ float* maxpool(float* x, int stride, int rows, int cols, int depth){
   return result;
 }
 
+float* maxpool2(float* x, int stride, int rows, int cols, int depth){
+  float* result = (float*)malloc(sizeof(float)*(depth*(rows*cols)));
+  float curr_max;
+  int m = rows - 1;
+  int n = cols - 1;
+  int y = 0;
+  for(int k = 0; k < depth; k++){
+    for(int i = 0; i < rows; i+=stride){
+      for(int j = 0; j < cols; j+=stride){
+          curr_max = x[i*cols + j + k*rows*cols];
+
+          for(int a = 0; a < 2; a++){
+            for(int b = 0; b < 2; b++){
+              //printf("%f\n", x[(i+a)*(cols) + j + b]);
+              if(curr_max < x[j+b + (i+a)*cols + (k)*(rows*cols)])
+                curr_max = x[j+b + (i+a)*cols + k*rows*cols];
+            }
+          }
+        result[y] = 1.0;
+        y++;
+      }
+    }
+  }
+  return result;
+}
+
 // backprop for maxpool
 // essentially inputs that are not the "max" are given 0 since they don't affect the output
 float* backMax(float* dL, float* result, float* x, int stride, int rows, int cols, int depth){
-
+  int cnt = 0;
   // dL is input for backprop
   // result is output of maxPooling
   // input for maxPooling
 
-  printf("Values of result===========\n");
-  int idx;
-  for(idx = 0; idx < 150; idx++){
-      printf("%f\n", result[idx]);
-  }
-  printf("Values of x=============\n");
-  for(idx = 0; idx < 150; idx++){
-      printf("%f\n", x[idx]);
-  }
+  // printf("Values of result===========\n");
+  // int idx;
+  // for(idx = 0; idx < 14*512; idx++){
+  //     printf("%f\n", result[idx]);
+  // }
+  // printf("Values of x=============\n");
+  // for(idx = 0; idx < 14*512; idx++){
+  //     printf("%f\n", x[idx]);
+  // }
   float* dX = (float*)malloc(sizeof(float)*(depth*(rows*cols)));
   float dLval;
   float curr_max;
@@ -414,14 +440,17 @@ float* backMax(float* dL, float* result, float* x, int stride, int rows, int col
       for(int j = 0; j < cols; j+=stride){
           dLval = dL[y];
           curr_max = result[y];
-          //printf("result[y] is %f", result[y]);
+          cnt++;
           y++;
           for(int a = 0; a < 2; a++){
             for(int b = 0; b < 2; b++){
-              if(x[j+b + (i+a)*cols + (k)*(rows*cols)] < curr_max)
+              if(x[j+b + (i+a)*cols + (k)*(rows*cols)] != curr_max){
                 dX[j+b + (i+a)*cols + (k)*(rows*cols)] = 0.0;
-              else
+              }
+              else{
                 dX[j+b + (i+a)*cols + (k)*(rows*cols)] = 1.0;
+              }
+              //printf("dX[index] is %f\n", dX[j+b + (i+a)*cols + (k)*(rows*cols)]);
             }
           }
       }
@@ -515,6 +544,13 @@ void createVGG16(float* inputImage){
   }
 
   featureMap = relu(featureMap, 224*224*64);
+
+
+    printf("after conv1_1 block========================\n");
+    int idx;
+    for(idx = 0; idx < 150; idx++){
+        printf("%f\n", featureMap[idx]);
+    }
   //printf("%f\n", featureMap[63]);
 
 
@@ -567,6 +603,12 @@ void createVGG16(float* inputImage){
   float* pooledOutput;
   pooledOutput = maxpool(newFeatureMap, 2, 224, 224, 64);
   free(newFeatureMap);
+
+  // printf("after maxPooling========================\n");
+  // for(idx = 0; idx < 150; idx++){
+  //     printf("%f\n", pooledOutput[idx]);
+  // }
+
 
 
 
@@ -929,15 +971,40 @@ void createVGG16(float* inputImage){
             free(weights);
             free(convKernel);
             featureMap = relu(featureMap, 14*14*512);
-            printf("before maxPooling========================");
-            int idx;
-            for(idx = 0; idx < 150; idx++){
-                printf("%f\n", featureMap[idx]);
-            }
-
-
-
+            // printf("before maxPooling========================");
+            // int idx;
+            // for(idx = 0; idx < 150; idx++){
+            //     printf("%f\n", featureMap[idx]);
+            // // }
+            // FILE* featureMapFile;
+            // if((featureMapFile = fopen("featureMaptestFile.txt", "w")) == NULL){
+            //   printf("Content file not found!");
+            //   return;
+            // }
+            //
+            // for(i = 0; i < (14*14*512); i++){
+            //   fprintf(featureMapFile, "%f\n", featureMap[i]);
+            // }
+            //
+            // FILE* l;
+            // if((bleh = fopen("maxpool2.txt", "w")) == NULL){
+            //   printf("Content file not found!");
+            //   return;
+            // }
+            //
             pooledOutput = maxpool(featureMap, 2, 14, 14, 512);
+            //
+            //
+            // float* desiredBackProp;
+            // desiredBackProp = maxpool2(featureMap, 2, 14, 14, 512);
+            // FILE* bleh;
+            // if((bleh = fopen("maxpool2.txt", "w")) == NULL){
+            //   printf("Content file not found!");
+            //   return;
+            // }
+            // for(i = 0; i < 14*14*512; i++){
+            //   fprintf(bleh, "%f\n", desiredBackProp[i]);
+            // }
             // printf("before maxPooling========================");
             // int idx;
             // for(idx = 0; idx < 150; idx++){
@@ -947,19 +1014,32 @@ void createVGG16(float* inputImage){
 
 
 
-            printf("after maxPooling========================");
-            for(idx = 0; idx < 150; idx++){
-                printf("%f\n", pooledOutput[idx]);
-            }
+            // printf("after maxPooling========================");
+            // for(idx = 0; idx < 7*512; idx++){
+            //     printf("%f\n", pooledOutput[idx]);
+            // }
 
 
-            // WE GET CORRECT output FOR THE after maxPooling JOHN
-
-
-
-
+            // FILE* maxPooledFeatureMap;
+            // if((maxPooledFeatureMap = fopen("maxPooltestFile.txt", "w")) == NULL){
+            //   printf("Content file not found!");
+            //   return;
+            // }
+            //
+            // for(i = 0; i < (7*7*512); i++){
+            //   fprintf(maxPooledFeatureMap, "%f\n", pooledOutput[i]);
+            // }
+            //
             float* backMaxOut;
             backMaxOut = backMax(pooledOutput, pooledOutput, featureMap, 2, 14, 14, 512);
+            // FILE* backPropOut;
+            // if((backPropOut = fopen("backpropMax.txt", "w")) == NULL){
+            //   printf("Content file not found!");
+            //   return;
+            // }
+            // for(i = 0; i < 14*14*512; i++){
+            //   fprintf(backPropOut, "%f\n", backMaxOut[i]);
+            // }
           //  printf("After backProp========================");
             //
             // for(idx = 0; idx < 150; idx++){
