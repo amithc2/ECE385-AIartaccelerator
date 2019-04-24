@@ -388,10 +388,35 @@ float* maxpool(float* x, int stride, int rows, int cols, int depth){
   return result;
 }
 
+float* maxpool2(float* x, int stride, int rows, int cols, int depth){
+  float* result = (float*)malloc(sizeof(float)*(depth*(rows*cols)));
+  float curr_max;
+  int m = rows - 1;
+  int n = cols - 1;
+  int y = 0;
+  for(int k = 0; k < depth; k++){
+    for(int i = 0; i < rows; i+=stride){
+      for(int j = 0; j < cols; j+=stride){
+          curr_max = x[i*cols + j + k*rows*cols];
+
+          for(int a = 0; a < 2; a++){
+            for(int b = 0; b < 2; b++){
+              //printf("%f\n", x[(i+a)*(cols) + j + b]);
+              if(curr_max < x[j+b + (i+a)*cols + (k)*(rows*cols)])
+                curr_max = x[j+b + (i+a)*cols + k*rows*cols];
+            }
+          }
+        result[y] = 1.0;
+        y++;
+      }
+    }
+  }
+  return result;
+}
+
 // backprop for maxpool
 // essentially inputs that are not the "max" are given 0 since they don't affect the output
 float* backMax(float* dL, float* result, float* x, int stride, int rows, int cols, int depth){
-
   // dL is input for backprop
   // result is output of maxPooling
   // input for maxPooling
@@ -406,6 +431,7 @@ float* backMax(float* dL, float* result, float* x, int stride, int rows, int col
   //     printf("%f\n", x[idx]);
   // }
   float* dX = (float*)malloc(sizeof(float)*(depth*(rows*cols)));
+  int numOccurences;
   float dLval;
   float curr_max;
   int y = 0;
@@ -414,15 +440,26 @@ float* backMax(float* dL, float* result, float* x, int stride, int rows, int col
       for(int j = 0; j < cols; j+=stride){
           dLval = dL[y];
           curr_max = result[y];
-          printf("result[y] is %f\n", result[y]);
           y++;
+          numOccurences = 0;
           for(int a = 0; a < 2; a++){
             for(int b = 0; b < 2; b++){
-              if(x[j+b + (i+a)*cols + (k)*(rows*cols)] < curr_max)
+              if(x[j+b + (i+a)*cols + (k)*(rows*cols)] < curr_max){
                 dX[j+b + (i+a)*cols + (k)*(rows*cols)] = 0.0;
-              else
+              }
+              else if(x[j+b + (i+a)*cols + (k)*(rows*cols)] == curr_max){
+                numOccurences++;
+                if(numOccurences == 1){
+                  dX[j+b + (i+a)*cols + (k)*(rows*cols)] = 1.0;
+                }
+                else{
+                  dX[j+b + (i+a)*cols + (k)*(rows*cols)] = 0.0;
+                }
+              }
+              else{
                 dX[j+b + (i+a)*cols + (k)*(rows*cols)] = 1.0;
-              printf("dX[index] is %f\n", dX[j+b + (i+a)*cols + (k)*(rows*cols)]);
+              }
+              //printf("dX[index] is %f\n", dX[j+b + (i+a)*cols + (k)*(rows*cols)]);
             }
           }
       }
@@ -432,18 +469,48 @@ float* backMax(float* dL, float* result, float* x, int stride, int rows, int col
 }
 
 
-float* backRelu(float* dL, float* result, float* x, int size){
-  float* dX = (float*)malloc(sizeof(float)*size);
-  int i;
+  //backReluOut = backRelu(backMaxOut, reluSave, 14*14*512);
+float* backRelu(float* dL, float* x, int rows, int cols, int depth){
+  float* dX;
   float dLval;
-  for(i = 0; i < size; i++)
-    dLval = dL[i];
-    if(x[i] <= 0){
-      dX[i] = 0.0;
+  dX = (float*)malloc(sizeof(float)*depth*rows*cols);
+  int numLessthanZero;
+  int i, j, k, a, b, y;
+  // for(i = 0; i < size; i++){
+  //    dLval = dL[i];
+  //    //printf("%f\n", dLval);
+  //    if(x[i] < 0){
+  //      dX[i] = 0.0;
+  //    }
+  //    else{
+  //      dX[i] = dLval;
+  //    }
+  //  }
+  // return dX;
+  for(k = 0; k < depth; k++){
+    for(i = 0; i < rows; i+=2){
+      for(j = 0; j < cols; j+=2){
+        numLessthanZero = 0;
+        for(a = 0; a < 2; a++){
+          for(b = 0; b < 2; b++){
+            dLval = dL[j+b + (i+a)*cols + (k)*(rows*cols)];
+            if(x[j+b + (i+a)*cols + (k)*(rows*cols)] < 0.0){
+              dX[j+b + (i+a)*cols + (k)*(rows*cols)] = 0.0;
+              numLessthanZero++;
+            }
+            else{
+              dX[j+b + (i+a)*cols + (k)*(rows*cols)] = dLval;
+            }
+          }
+        }
+
+        if(numLessthanZero == 4){
+          dX[j + (i)*cols + (k)*(rows*cols)] = dL[j + (i)*cols + (k)*(rows*cols)];
+        }
+
+      }
     }
-    else{
-      dX[i] = dLval;
-    }
+  }
 
   return dX;
 }
@@ -517,12 +584,12 @@ void createVGG16(float* inputImage){
 
   featureMap = relu(featureMap, 224*224*64);
 
-
-    printf("after conv1_1 block========================\n");
-    int idx;
-    for(idx = 0; idx < 150; idx++){
-        printf("%f\n", featureMap[idx]);
-    }
+    //
+    // printf("after conv1_1 block========================\n");
+    // int idx;
+    // for(idx = 0; idx < 150; idx++){
+    //     printf("%f\n", featureMap[idx]);
+    // }
   //printf("%f\n", featureMap[63]);
 
 
@@ -576,10 +643,10 @@ void createVGG16(float* inputImage){
   pooledOutput = maxpool(newFeatureMap, 2, 224, 224, 64);
   free(newFeatureMap);
 
-  printf("after maxPooling========================\n");
-  for(idx = 0; idx < 150; idx++){
-      printf("%f\n", pooledOutput[idx]);
-  }
+  // printf("after maxPooling========================\n");
+  // for(idx = 0; idx < 150; idx++){
+  //     printf("%f\n", pooledOutput[idx]);
+  // }
 
 
 
@@ -942,23 +1009,60 @@ void createVGG16(float* inputImage){
             free(weights[1]);
             free(weights);
             free(convKernel);
+
+            float* reluSave;
+            reluSave = (float*)malloc(sizeof(float)*14*14*512);
+            for(i = 0; i < (14*14*512); i++){
+              reluSave[i] = featureMap[i];
+            }
             featureMap = relu(featureMap, 14*14*512);
             // printf("before maxPooling========================");
             // int idx;
             // for(idx = 0; idx < 150; idx++){
             //     printf("%f\n", featureMap[idx]);
             // }
-
+            // FILE* featureMapFile;
+            // if((featureMapFile = fopen("featureMaptestFile.txt", "w")) == NULL){
+            //   printf("Content file not found!");
+            //   return;
+            // }
+            //
+            // for(i = 0; i < (14*14*512); i++){
+            //   fprintf(featureMapFile, "%f\n", featureMap[i]);
+            // }
 
 
             pooledOutput = maxpool(featureMap, 2, 14, 14, 512);
+
+            //
+            //
+            // float* desiredBackProp;
+            // desiredBackProp = maxpool2(featureMap, 2, 14, 14, 512);
+            // FILE* bleh;
+            // if((bleh = fopen("maxpool2.txt", "w")) == NULL){
+            //   printf("Content file not found!");
+            //   return;
+            // }
+            // for(i = 0; i < 14*14*512; i++){
+            //   fprintf(bleh, "%f\n", desiredBackProp[i]);
+            // }
             // printf("before maxPooling========================");
             // int idx;
             // for(idx = 0; idx < 150; idx++){
             //     printf("%f\n", featureMap[idx]);
             // }
             // WE GET ALL ZEROS FOR THE before maxPooling JOHN
-
+            FILE* beforeRelu;
+            if((beforeRelu = fopen("featureMaptestFile.txt", "w")) == NULL){
+              printf("Content file not found!");
+              return;
+            }
+            for(i = 0; i < (512*14); i++){
+              for(j = 0; j < 14; j++){
+                fprintf(beforeRelu, "%f ", reluSave[i*14+j]);
+              }
+              fprintf(beforeRelu, "\n");
+            }
 
 
             // printf("after maxPooling========================");
@@ -966,14 +1070,46 @@ void createVGG16(float* inputImage){
             //     printf("%f\n", pooledOutput[idx]);
             // }
 
-
-            // WE GET CORRECT output FOR THE after maxPooling JOHN
-
-
-
-
+            //
+            // FILE* maxPooledFeatureMap;
+            // if((maxPooledFeatureMap = fopen("maxPooltestFile.txt", "w")) == NULL){
+            //   printf("Content file not found!");
+            //   return;
+            // }
+            //
+            // for(i = 0; i < (7*7*512); i++){
+            //   fprintf(maxPooledFeatureMap, "%f\n", pooledOutput[i]);
+            // }
+            //
             float* backMaxOut;
             backMaxOut = backMax(pooledOutput, pooledOutput, featureMap, 2, 14, 14, 512);
+            free(featureMap);
+            free(pooledOutput);
+
+            FILE* maxPoolOut;
+            if((maxPoolOut = fopen("maxPooltestFile.txt", "w")) == NULL){
+              printf("Content file not found!");
+              return;
+            }
+            for(i = 0; i < (512*14); i++){
+              for(j = 0; j < 14; j++){
+                fprintf(maxPoolOut, "%f ", backMaxOut[i*14+j]);
+              }
+              fprintf(maxPoolOut, "\n");
+            }
+
+
+
+            float* backReluOut;
+            backReluOut = backRelu(backMaxOut, reluSave, 14, 14, 512);
+            // FILE* backPropOut;
+            // if((backPropOut = fopen("backpropMax.txt", "w")) == NULL){
+            //   printf("Content file not found!");
+            //   return;
+            // }
+            // for(i = 0; i < 14*14*512; i++){
+            //   fprintf(backPropOut, "%f\n", backMaxOut[i]);
+            // }
           //  printf("After backProp========================");
             //
             // for(idx = 0; idx < 150; idx++){
@@ -982,14 +1118,27 @@ void createVGG16(float* inputImage){
 
 
             //
-            // FILE* backPropOut;
-            // if((backPropOut = fopen("backpropMax.txt", "w")) == NULL){
-            //   printf("Content file not found!");
-            //   return;
-            // }
-            // for(i = 0; i < 512; i++){
-            //   fprintf(backPropOut, "%f ", backMaxOut[i]);
-            // }
+            FILE* backPropOut;
+            if((backPropOut = fopen("backpropMax.txt", "w")) == NULL){
+              printf("Content file not found!");
+              return;
+            }
+            for(i = 0; i < (512*14); i++){
+              for(j = 0; j < 14; j++){
+                fprintf(backPropOut, "%f ", backReluOut[i*14+j]);
+              }
+              fprintf(backPropOut, "\n");
+            }
+
+            // FILE* backReluFile;
+
+
+            free(reluSave);
+            free(backMaxOut);
+            free(backReluOut);
+
+
+
 
 }
 
