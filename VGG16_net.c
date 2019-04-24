@@ -4,6 +4,14 @@
 
 // IMPLEMENTATION OF VGG16 IN C:
 
+typedef struct layers{
+  float* getLayer1;
+  float* getLayer2;
+  float* getLayer3;
+  float* getLayer4;
+  float* getLayer5;
+} layers;
+
 // Dense Layer
 // float* denseLayer(int output_shape, float* input, float* weight, float* bias, int h1, int w1, int h2, int w2){
 //   int i, j;
@@ -529,6 +537,130 @@ float* backRelu(float* dL, float* x, int rows, int cols, int depth){
   return dX;
 }
 
+float* rotateFilter(float* filter){
+  float temp;
+  int i, j;
+  float* newFilter;
+  newFilter = (float*)malloc(sizeof(float)*9);
+  for (i = 0; i < 3 / 2; i++) {
+      for (j = i; j < 3 - i - 1; j++) {
+
+          // Swap elements of each cycle
+          // in clockwise direction
+          temp = filter[i*3+j];
+          filter[i*3+j] = filter[(2 - j)*3+i];
+          filter[(2 - j)*3+i] = filter[(2 - i)*3+(2 - j)];
+          filter[(2 - i)*3+(2 - j)] = filter[j*3+(2 - i)];
+          filter[j*3+(2 - i)] = temp;
+      }
+  }
+
+
+  for (i = 0; i < 3 / 2; i++) {
+      for (j = i; j < 3 - i - 1; j++) {
+
+          // Swap elements of each cycle
+          // in clockwise direction
+          temp = filter[i*3+j];
+          filter[i*3+j] = filter[(2 - j)*3+i];
+          filter[(2 - j)*3+i] = filter[(2 - i)*3+(2 - j)];
+          filter[(2 - i)*3+(2 - j)] = filter[j*3+(2 - i)];
+          filter[j*3+(2 - i)] = temp;
+      }
+  }
+
+
+
+
+  for(i = 0; i < 9; i++){
+    newFilter[i] = filter[i];
+  }
+  return newFilter;
+}
+
+float* backConv(float* dL, float* filter, int stride, int rows, int cols, int depth){
+
+  // the backpropagation step for convolution consists of performing the full convolution between
+  // dL (the derivative of the loss function with respect to the output of the convolution) and
+  // the 180 degree rotated filter
+  float* rotatedFilter;
+  // rotate f
+
+  rotatedFilter = rotateFilter(filter);
+
+  // zero-pad dL
+  int m = rows - 2;
+  int n = cols - 2;
+  int i, j, k, a, b, c;
+  int y = 0;
+  int z = 0;
+  int index = 0;
+  int size;
+  size = (rows+2)*(cols+2)*depth;
+  float* input_image_padded;
+  input_image_padded = (float*)malloc(sizeof(float)*size);
+  for(k = 0; k < (depth); k++){
+    for(i = 0; i < (rows + 2); i++){
+      for(j = 0; j < (cols + 2); j++){
+        if(i > 0 && i < rows + 1 && j > 0 && j < cols + 1){
+          input_image_padded[j + i*(cols+2) + k*(rows+2)*(cols+2)] = dL[(j-1) + (i-1)*cols + k*(rows)*(cols)];
+        }
+        else{
+          input_image_padded[j + i*(cols+2) + k*(rows+2)*(cols+2)] = 0;
+        }
+      }
+    }
+  }
+
+  // perform full convolution
+  float* filtered_image = (float*)malloc(sizeof(float)*(rows*cols));
+  float* patch;
+  patch = (float*)malloc(sizeof(float)*(3*3*depth));
+  for(k = 0; k < 1; k++){
+    for(i = 0; i < rows; i+=stride){
+      for(j = 0; j < cols; j+=stride){
+        y = 0;
+        // our filter is 3x3xdepth since the depth of our filter and the input
+        // must be equal
+        // printf("new patch\n" );
+        for(c = 0; c < depth; c++){
+            // printf("new patch dim\n" );
+          for(a = 0; a < 3; a++){
+            for(b = 0; b < 3; b++){
+              // int testmeme = j+b + (i+a)*(cols+2) + (k+c)*(rows+2)*(cols+2);
+              // printf("patchy : %d b : %d j : %d i: %d a : %d c : %d testmeme : %d\n", y, b, j, i, a, c, testmeme);
+              // printf(" input padded : %f\n",input_image_padded[2] );
+              patch[y] = input_image_padded[j+b + (i+a)*(cols+2) + (k+c)*(rows+2)*(cols+2)];
+
+              // printf("patch : %f\n", patch[y]);
+              // input_image_padded[(i+a) + (cols * ((j+b) + (depth * (k+c))))];
+              y++;
+            }
+          }
+        }
+        float* matrixmult = matrixIndexMultiplier(patch, filter, 3, 3, 3, 3, depth);
+        filtered_image[index] = sum(matrixmult, 3*3*depth);
+
+            //printf("%f\n", filtered_image[0]);
+
+        index++;
+        free(matrixmult);
+        z++;
+      }
+    }
+  }
+  //printf("%f\n", filtered_image[0]);
+  free(patch);
+  free(input_image_padded);
+  return filtered_image;
+}
+
+
+
+
+
+
+
 // softmax : this is used in the last layer for vgg16
 // Here is some psuedo code:
 /*
@@ -555,7 +687,9 @@ float* softmax(float* x, int size){
   return softmax_result;
 }
 
-void createVGG16(float* inputImage){
+layers createVGG16(float* inputImage){
+
+  layers allLayerOuts;
   float* prevImage;
   float** weights;
   float* layerWeight;
@@ -671,9 +805,11 @@ void createVGG16(float* inputImage){
   //     printf("%f\n", pooledOutput[idx]);
   // }
 
+  allLayerOuts.getLayer1 = pooledOutput;
 
 
 
+  float* pooledOutput2;
   // CONVOLUTION LAYER 2
   // Block 1
   filterIndex = 0;
@@ -707,7 +843,7 @@ void createVGG16(float* inputImage){
     //   printf("%f\n", featureMap[idx]);
     // }
 
-    free(pooledOutput);
+    //free(pooledOutput);
     free(weights[0]);
     free(weights[1]);
     free(weights);
@@ -745,12 +881,15 @@ void createVGG16(float* inputImage){
      free(convKernel);
 
   newFeatureMap = relu(newFeatureMap, 112*112*128);
-  pooledOutput = maxpool(newFeatureMap, 2, 112, 112, 128);
+  pooledOutput2 = maxpool(newFeatureMap, 2, 112, 112, 128);
   free(newFeatureMap);
 
 
+  allLayerOuts.getLayer2 = pooledOutput2;
+
   // CONVOLUTION LAYER 3
   // Block 1
+  float* pooledOutput3;
   filterIndex = 0;
   n = 0;
   featureMap = (float*)malloc(sizeof(float)*56*56*256);
@@ -764,7 +903,7 @@ void createVGG16(float* inputImage){
         convKernel[k] = layerWeight[j];
         k++;
       }
-      currFeatureMap = convFilter(pooledOutput, convKernel, layerBias[i], 56, 56, 128, 1);
+      currFeatureMap = convFilter(pooledOutput2, convKernel, layerBias[i], 56, 56, 128, 1);
       for(m = 0; m < 56*56; m++){
         featureMap[n] = currFeatureMap[m];
         n++;
@@ -772,7 +911,7 @@ void createVGG16(float* inputImage){
       free(currFeatureMap);
       filterIndex = filterIndex + 1152;
     }
-    free(pooledOutput);
+    //free(pooledOutput);
     free(weights[0]);
     free(weights[1]);
     free(weights);
@@ -838,8 +977,11 @@ void createVGG16(float* inputImage){
 
 
       featureMap = relu(featureMap, 56*56*256);
-      pooledOutput = maxpool(featureMap, 2, 56, 56, 256);
+      pooledOutput3 = maxpool(featureMap, 2, 56, 56, 256);
       free(featureMap);
+
+
+      allLayerOuts.getLayer3 = pooledOutput3;
 
       // printf("After maxpooling========================");
       // int idx;
@@ -851,6 +993,7 @@ void createVGG16(float* inputImage){
 
     // CONVOLUTION LAYER 4
     // Block 1
+    float* pooledOutput4;
     filterIndex = 0;
     n = 0;
     featureMap = (float*)malloc(sizeof(float)*28*28*512);
@@ -864,7 +1007,7 @@ void createVGG16(float* inputImage){
           convKernel[k] = layerWeight[j];
           k++;
         }
-        currFeatureMap = convFilter(pooledOutput, convKernel, layerBias[i], 28, 28, 256, 1);
+        currFeatureMap = convFilter(pooledOutput3, convKernel, layerBias[i], 28, 28, 256, 1);
         for(m = 0; m < 28*28; m++){
           featureMap[n] = currFeatureMap[m];
           n++;
@@ -872,7 +1015,7 @@ void createVGG16(float* inputImage){
         free(currFeatureMap);
         filterIndex = filterIndex + 2304;
       }
-      free(pooledOutput);
+      //free(pooledOutput);
       free(weights[0]);
       free(weights[1]);
       free(weights);
@@ -940,12 +1083,15 @@ void createVGG16(float* inputImage){
           free(convKernel);
 
           featureMap = relu(featureMap, 28*28*512);
-          pooledOutput = maxpool(featureMap, 2, 28, 28, 512);
+          pooledOutput4 = maxpool(featureMap, 2, 28, 28, 512);
           free(featureMap);
 
 
+        allLayerOuts.getLayer4 = pooledOutput4;
+
         // CONVOLUTION LAYER 5
         // Block 1
+        float* pooledOutput5;
         filterIndex = 0;
         n = 0;
         featureMap = (float*)malloc(sizeof(float)*14*14*512);
@@ -959,7 +1105,7 @@ void createVGG16(float* inputImage){
               convKernel[k] = layerWeight[j];
               k++;
             }
-            currFeatureMap = convFilter(pooledOutput, convKernel, layerBias[i], 14, 14, 512, 1);
+            currFeatureMap = convFilter(pooledOutput4, convKernel, layerBias[i], 14, 14, 512, 1);
             for(m = 0; m < 14*14; m++){
               featureMap[n] = currFeatureMap[m];
               n++;
@@ -967,7 +1113,7 @@ void createVGG16(float* inputImage){
             free(currFeatureMap);
             filterIndex = filterIndex + 4608;
           }
-          free(pooledOutput);
+          //free(pooledOutput);
           free(weights[0]);
           free(weights[1]);
           free(weights);
@@ -1072,9 +1218,14 @@ void createVGG16(float* inputImage){
 =======
 
 
+<<<<<<< HEAD
             pooledOutput = maxpool(featureMap, 2, 14, 14, 512);
 
 >>>>>>> 798a4e8f36cd74bf795bb33b82590752d3f7892d
+=======
+            pooledOutput5 = maxpool(featureMap, 2, 14, 14, 512);
+            allLayerOuts.getLayer5 = pooledOutput5;
+>>>>>>> 2cbe7333551d649346b2891b7374a2839e6255e6
             //
             //
             // float* desiredBackProp;
@@ -1099,7 +1250,7 @@ void createVGG16(float* inputImage){
             FILE* beforeRelu;
             if((beforeRelu = fopen("featureMaptestFile.txt", "w")) == NULL){
               printf("Content file not found!");
-              return;
+              //return;
             }
             for(i = 0; i < (512*14); i++){
               for(j = 0; j < 14; j++){
@@ -1143,14 +1294,14 @@ void createVGG16(float* inputImage){
             // }
             //
             float* backMaxOut;
-            backMaxOut = backMax(pooledOutput, pooledOutput, featureMap, 2, 14, 14, 512);
+            backMaxOut = backMax(pooledOutput5, pooledOutput5, featureMap, 2, 14, 14, 512);
             free(featureMap);
-            free(pooledOutput);
+            //free(pooledOutput);
 
             FILE* maxPoolOut;
             if((maxPoolOut = fopen("maxPooltestFile.txt", "w")) == NULL){
               printf("Content file not found!");
-              return;
+              //return;
             }
             for(i = 0; i < (512*14); i++){
               for(j = 0; j < 14; j++){
@@ -1183,7 +1334,7 @@ void createVGG16(float* inputImage){
             FILE* backPropOut;
             if((backPropOut = fopen("backpropMax.txt", "w")) == NULL){
               printf("Content file not found!");
-              return;
+              //return;
             }
             for(i = 0; i < (512*14); i++){
               for(j = 0; j < 14; j++){
@@ -1198,7 +1349,7 @@ void createVGG16(float* inputImage){
             free(reluSave);
             free(backMaxOut);
             free(backReluOut);
-
+            return allLayerOuts;
 
 
 
@@ -1287,9 +1438,10 @@ int main(){
   // for(int i = 0; i < 9; i++)
   //   printf("result: %f\n", conv_layer_test[i]);
   // free(conv_layer_test);
+  layers layerJohns;
   float* inputImage;
   inputImage = preprocess("input.txt");
-  createVGG16(inputImage);
+  layerJohns = createVGG16(inputImage);
 
 
   return 0;
