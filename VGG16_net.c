@@ -793,6 +793,7 @@ layers createVGG16(float* inputImage){
 
 
 
+
   float* pooledOutput2;
   // CONVOLUTION LAYER 2
   // Block 1
@@ -871,6 +872,8 @@ layers createVGG16(float* inputImage){
 
   layerList.getConv2_2 = pooledOutput2;
 
+
+
   // CONVOLUTION LAYER 3
   // Block 1
   float* pooledOutput3;
@@ -901,6 +904,19 @@ layers createVGG16(float* inputImage){
     free(weights);
     free(convKernel);
     featureMap = relu(featureMap, 56*56*256);
+
+
+            FILE* beforeRelu;
+            if((beforeRelu = fopen("featureMaptestFile.txt", "w")) == NULL){
+              printf("Content file not found!");
+              //return;
+            }
+            for(i = 0; i < (56*56*256); i++){
+                fprintf(beforeRelu, "%f\n", featureMap[i]);
+              }
+
+
+            printf("sec block done");
 
     layerList.getConv3_1 = featureMap;
     // Block 2
@@ -1074,6 +1090,7 @@ layers createVGG16(float* inputImage){
           free(featureMap);
           layerList.getConv4_3 = pooledOutput4;
 
+
         // CONVOLUTION LAYER 5
         // Block 1
         float* pooledOutput5;
@@ -1164,6 +1181,11 @@ layers createVGG16(float* inputImage){
             free(weights);
             free(convKernel);
 
+
+
+
+
+
             float* reluSave;
             reluSave = (float*)malloc(sizeof(float)*14*14*512);
             for(i = 0; i < (14*14*512); i++){
@@ -1206,17 +1228,17 @@ layers createVGG16(float* inputImage){
             //     printf("%f\n", featureMap[idx]);
             // }
             // WE GET ALL ZEROS FOR THE before maxPooling JOHN
-            FILE* beforeRelu;
-            if((beforeRelu = fopen("featureMaptestFile.txt", "w")) == NULL){
-              printf("Content file not found!");
-              //return;
-            }
-            for(i = 0; i < (512*14); i++){
-              for(j = 0; j < 14; j++){
-                fprintf(beforeRelu, "%f ", reluSave[i*14+j]);
-              }
-              fprintf(beforeRelu, "\n");
-            }
+            // FILE* beforeRelu;
+            // if((beforeRelu = fopen("featureMaptestFile.txt", "w")) == NULL){
+            //   printf("Content file not found!");
+            //   //return;
+            // }
+            // for(i = 0; i < (512*14); i++){
+            //   for(j = 0; j < 14; j++){
+            //     fprintf(beforeRelu, "%f ", reluSave[i*14+j]);
+            //   }
+            //   fprintf(beforeRelu, "\n");
+            // }
 
 
             // printf("after maxPooling========================");
