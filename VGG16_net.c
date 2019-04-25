@@ -433,6 +433,7 @@ float* maxpool2(float* x, int stride, int rows, int cols, int depth){
 // backprop for maxpool
 // essentially inputs that are not the "max" are given 0 since they don't affect the output
 float* backMax(float* dL, float* result, float* x, int stride, int rows, int cols, int depth){
+  int cnt = 0;
   // dL is input for backprop
   // result is output of maxPooling
   // input for maxPooling
@@ -456,6 +457,7 @@ float* backMax(float* dL, float* result, float* x, int stride, int rows, int col
       for(int j = 0; j < cols; j+=stride){
           dLval = dL[y];
           curr_max = result[y];
+          cnt++;
           y++;
           numOccurences = 0;
           for(int a = 0; a < 2; a++){
@@ -725,7 +727,13 @@ layers createVGG16(float* inputImage){
   }
 
   featureMap = relu(featureMap, 224*224*64);
-  layerList.getConv1_1 = featureMap;
+
+
+    printf("after conv1_1 block========================\n");
+    int idx;
+    for(idx = 0; idx < 150; idx++){
+        printf("%f\n", featureMap[idx]);
+    }
     //
     // printf("after conv1_1 block========================\n");
     // int idx;
@@ -1196,7 +1204,7 @@ layers createVGG16(float* inputImage){
             // int idx;
             // for(idx = 0; idx < 150; idx++){
             //     printf("%f\n", featureMap[idx]);
-            // }
+            // // }
             // FILE* featureMapFile;
             // if((featureMapFile = fopen("featureMaptestFile.txt", "w")) == NULL){
             //   printf("Content file not found!");
@@ -1206,10 +1214,18 @@ layers createVGG16(float* inputImage){
             // for(i = 0; i < (14*14*512); i++){
             //   fprintf(featureMapFile, "%f\n", featureMap[i]);
             // }
-
+            //
+            // FILE* l;
+            // if((bleh = fopen("maxpool2.txt", "w")) == NULL){
+            //   printf("Content file not found!");
+            //   return;
+            // }
+            //
+            pooledOutput = maxpool(featureMap, 2, 14, 14, 512);
 
             pooledOutput5 = maxpool(featureMap, 2, 14, 14, 512);
-            layerList.getConv5_3 = pooledOutput5;
+            allLayerOuts.getLayer5 = pooledOutput5;
+
             //
             //
             // float* desiredBackProp;
@@ -1246,7 +1262,7 @@ layers createVGG16(float* inputImage){
             //     printf("%f\n", pooledOutput[idx]);
             // }
 
-            //
+
             // FILE* maxPooledFeatureMap;
             // if((maxPooledFeatureMap = fopen("maxPooltestFile.txt", "w")) == NULL){
             //   printf("Content file not found!");
@@ -1258,26 +1274,7 @@ layers createVGG16(float* inputImage){
             // }
             //
             float* backMaxOut;
-            backMaxOut = backMax(pooledOutput5, pooledOutput5, featureMap, 2, 14, 14, 512);
-            free(featureMap);
-            //free(pooledOutput);
-
-            FILE* maxPoolOut;
-            if((maxPoolOut = fopen("maxPooltestFile.txt", "w")) == NULL){
-              printf("Content file not found!");
-              //return;
-            }
-            for(i = 0; i < (512*14); i++){
-              for(j = 0; j < 14; j++){
-                fprintf(maxPoolOut, "%f ", backMaxOut[i*14+j]);
-              }
-              fprintf(maxPoolOut, "\n");
-            }
-
-
-
-            float* backReluOut;
-            backReluOut = backRelu(backMaxOut, reluSave, 14, 14, 512);
+            backMaxOut = backMax(pooledOutput, pooledOutput, featureMap, 2, 14, 14, 512);
             // FILE* backPropOut;
             // if((backPropOut = fopen("backpropMax.txt", "w")) == NULL){
             //   printf("Content file not found!");
