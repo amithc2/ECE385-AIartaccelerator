@@ -80,6 +80,7 @@ float** getWeights(char* layerFile){
   }
   // return array
   LayerBias[1] = getBias;
+  fclose(weightsFile);
   return LayerBias;
 }
 
@@ -196,7 +197,7 @@ float* preprocess(char* inputImageFile){
     fscanf(image, "%f", &val);
     imgArray[i] = val;
   }
-
+  fclose(image);
   return imgArray;
 }
 
@@ -729,11 +730,6 @@ layers createVGG16(float* inputImage){
   featureMap = relu(featureMap, 224*224*64);
 
 
-    printf("after conv1_1 block========================\n");
-    int idx;
-    for(idx = 0; idx < 150; idx++){
-        printf("%f\n", featureMap[idx]);
-    }
     //
     // printf("after conv1_1 block========================\n");
     // int idx;
@@ -801,7 +797,6 @@ layers createVGG16(float* inputImage){
 
 
 
-
   float* pooledOutput2;
   // CONVOLUTION LAYER 2
   // Block 1
@@ -844,7 +839,11 @@ layers createVGG16(float* inputImage){
 
     featureMap = relu(featureMap, 112*112*128);
 
-    layerList.getConv2_1 = featureMap;
+    //layerList.getConv2_1 = featureMap;
+
+
+
+
    // Block 2
    filterIndex = 0;
    n = 0;
@@ -874,11 +873,18 @@ layers createVGG16(float* inputImage){
      free(convKernel);
 
   newFeatureMap = relu(newFeatureMap, 112*112*128);
+
+
+
+
+
   pooledOutput2 = maxpool(newFeatureMap, 2, 112, 112, 128);
   free(newFeatureMap);
 
 
   layerList.getConv2_2 = pooledOutput2;
+
+
 
 
 
@@ -914,19 +920,26 @@ layers createVGG16(float* inputImage){
     featureMap = relu(featureMap, 56*56*256);
 
 
-            FILE* beforeRelu;
-            if((beforeRelu = fopen("featureMaptestFile.txt", "w")) == NULL){
-              printf("Content file not found!");
-              //return;
-            }
-            for(i = 0; i < (56*56*256); i++){
-                fprintf(beforeRelu, "%f\n", featureMap[i]);
-              }
-
-
-            printf("sec block done");
+            // FILE* beforeRelu;
+            // if((beforeRelu = fopen("featureMaptestFile.txt", "w")) == NULL){
+            //   printf("Content file not found!");
+            //   //return;
+            // }
+            // for(i = 0; i < (56*56*256); i++){
+            //     fprintf(beforeRelu, "%f\n", featureMap[i]);
+            //   }
 
     layerList.getConv3_1 = featureMap;
+
+    // FILE* myOutput2;
+    // if((myOutput2 = fopen("layerout2.txt", "w")) == NULL){
+    //   printf("Content file not found!");
+    // }
+    //
+    // for(i = 0; i < (56*56*256); i++){
+    //   fprintf(myOutput2, "%f\n", featureMap[i]);
+    // }
+
     // Block 2
     filterIndex = 0;
     n = 0;
@@ -949,6 +962,8 @@ layers createVGG16(float* inputImage){
         free(currFeatureMap);
         filterIndex = filterIndex + 2304;
       }
+
+
       //free(featureMap);
       free(weights[0]);
       free(weights[1]);
@@ -956,7 +971,9 @@ layers createVGG16(float* inputImage){
       free(convKernel);
 
     newFeatureMap = relu(newFeatureMap, 56*56*256);
-    layerList.getConv3_2 = newFeatureMap;
+    //layerList.getConv3_2 = newFeatureMap;
+
+
 
     // Block 3
     filterIndex = 0;
@@ -994,10 +1011,11 @@ layers createVGG16(float* inputImage){
 
       layerList.getConv3_3 = pooledOutput3;
 
-      // printf("After maxpooling========================");
+
+      // printf("After layer 3========================");
       // int idx;
       // for(idx = 0; idx < 150; idx++){
-      //   printf("%f\n", pooledOutput[idx]);
+      //   printf("%f\n", pooledOutput3[idx]);
       // }
 
 
@@ -1199,7 +1217,7 @@ layers createVGG16(float* inputImage){
             for(i = 0; i < (14*14*512); i++){
               reluSave[i] = featureMap[i];
             }
-            featureMap = relu(featureMap, 14*14*512);
+             featureMap = relu(featureMap, 14*14*512);
             // printf("before maxPooling========================");
             // int idx;
             // for(idx = 0; idx < 150; idx++){
@@ -1221,10 +1239,11 @@ layers createVGG16(float* inputImage){
             //   return;
             // }
             //
-            pooledOutput = maxpool(featureMap, 2, 14, 14, 512);
+          //  pooledOutput = maxpool(featureMap, 2, 14, 14, 512);
 
             pooledOutput5 = maxpool(featureMap, 2, 14, 14, 512);
-            allLayerOuts.getLayer5 = pooledOutput5;
+            layerList.getConv5_3 = pooledOutput5;
+
 
             //
             //
@@ -1274,7 +1293,30 @@ layers createVGG16(float* inputImage){
             // }
             //
             float* backMaxOut;
-            backMaxOut = backMax(pooledOutput, pooledOutput, featureMap, 2, 14, 14, 512);
+            float* backReluOut;
+            float* backConvOut;
+            backMaxOut = backMax(pooledOutput5, pooledOutput5, featureMap, 2, 14, 14, 512);
+            backReluOut = backRelu(backMaxOut, reluSave, 14, 14, 512);
+
+
+            weights = getWeights("convlayer5_3.txt");
+            layerWeight = weights[0];
+            backConvOut = backConv(backReluOut, layerWeight, 2, 14, 14, 512);
+            FILE* myOutput;
+            if((myOutput = fopen("layerout.txt", "w")) == NULL){
+              printf("Content file not found!");
+            }
+
+            int idxr, idxc;
+            for(idxr = 0; idxr < (14*512); idxr++){
+
+              for(idxc = 0; idxc < 14; idxc++){
+                fprintf(myOutput, "%f ", backReluOut[idxr*14+idxc]);
+              }
+
+              fprintf(myOutput, "\n");
+            }
+            fclose(myOutput);
             // FILE* backPropOut;
             // if((backPropOut = fopen("backpropMax.txt", "w")) == NULL){
             //   printf("Content file not found!");
@@ -1291,24 +1333,24 @@ layers createVGG16(float* inputImage){
 
 
             //
-            FILE* backPropOut;
-            if((backPropOut = fopen("backpropMax.txt", "w")) == NULL){
-              printf("Content file not found!");
-              //return;
-            }
-            for(i = 0; i < (512*14); i++){
-              for(j = 0; j < 14; j++){
-                fprintf(backPropOut, "%f ", backReluOut[i*14+j]);
-              }
-              fprintf(backPropOut, "\n");
-            }
+            // FILE* backPropOut;
+            // if((backPropOut = fopen("backpropMax.txt", "w")) == NULL){
+            //   printf("Content file not found!");
+            //   //return;
+            // }
+            // for(i = 0; i < (512*14); i++){
+            //   for(j = 0; j < 14; j++){
+            //     fprintf(backPropOut, "%f ", backReluOut[i*14+j]);
+            //   }
+            //   fprintf(backPropOut, "\n");
+            // }
 
             // FILE* backReluFile;
 
 
-            free(reluSave);
+            //free(reluSave);
             free(backMaxOut);
-            free(backReluOut);
+            //free(backReluOut);
             return layerList;
 
 
