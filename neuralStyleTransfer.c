@@ -101,7 +101,7 @@ float* backContent(layerBlock* contentLayers, layerBlock*mixedLayers, int* layer
     }
 
     // sum rule for partial derivatives
-    dLTempBacked = backPropLayer(layerIds[i], dLTemp);
+    dLTempBacked = backPropLayer(dLTemp, mixedLayers, layerIDs[i]);
     // don't need dLTemp anymore
     free(dLTemp);
 
@@ -188,7 +188,7 @@ float* backStyle(layerBlock* styleLayers, layerBlock*mixedLayers, int* layerIds,
     }
 
     // sum rule for partial derivatives
-    dLTempBacked = backPropLayer(layerIds[i], dLTemp);
+    dLTempBacked = backPropLayer(dLTemp, mixedLayers, layerIDs[i]);
     // don't need dLTemp anymore
     free(dLTemp);
 
