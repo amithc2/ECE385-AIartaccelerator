@@ -1152,7 +1152,8 @@ float* backPropLayer(float* dL, layerBlock* layers, int layerID){
   float* layerWeight;
   float* layerBias;
   float* currFeatureMap;
-
+  int layerIDflag;
+  layerIDflag = 0;
   //  backConvOut = backMax(dL, blockOut, befPool, 2, 14, 14, 512);
   if(layerID == 12){
   // Conv 5_3
@@ -1186,14 +1187,21 @@ float* backPropLayer(float* dL, layerBlock* layers, int layerID){
   free(weights);
   free(convKernel);
   layerID--;
+  layerIDflag = 1;
 
   printf("layerID is now %d\n", layerID);
   }
 
   // Conv 5_2
   if(layerID == 11){
-  backReluOut = backRelu(backConvOut, layers[11].beforeRelu, 14, 14, 512);
-  free(backConvOut);
+    if(layerIDflag == 1){
+      backReluOut = backRelu(backConvOut, layers[11].beforeRelu, 14, 14, 512);
+      free(backConvOut);
+    }
+    else{
+      backReluOut = backRelu(dL, layers[11].beforeRelu, 14, 14, 512);
+    }
+
   filterIndex = 0;
   n = 0;
   backConvOut = (float*)malloc(sizeof(float)*14*14*512);
@@ -1221,13 +1229,19 @@ float* backPropLayer(float* dL, layerBlock* layers, int layerID){
   free(weights);
   free(convKernel);
   layerID--;
+  layerIDflag = 1;
   printf("layerID is now %d\n", layerID);
   }
 
   // Conv5_1
   if(layerID == 10){
-  backReluOut = backRelu(backConvOut, layers[10].beforeRelu, 14, 14, 512);
-  free(backConvOut);
+    if(layerIDflag == 1){
+      backReluOut = backRelu(backConvOut, layers[10].beforeRelu, 14, 14, 512);
+      free(backConvOut);
+    }
+    else{
+      backReluOut = backRelu(dL, layers[10].beforeRelu, 14, 14, 512);
+    }
   filterIndex = 0;
   n = 0;
   weights = getWeights("convlayerback5_1.txt");
@@ -1255,6 +1269,7 @@ float* backPropLayer(float* dL, layerBlock* layers, int layerID){
   free(weights);
   free(convKernel);
   layerID--;
+  layerIDflag = 1;
   printf("layerID is now %d\n", layerID);
   }
 //backMax(float* dL, float* result, float* x, int stride, int rows, int cols, int depth)
@@ -1262,9 +1277,16 @@ float* backPropLayer(float* dL, layerBlock* layers, int layerID){
 
   // Conv 4_3
   if(layerID == 9){
-  backMaxOut = backMax(backConvOut, layers[9].blockOutput, layers[9].beforePool, 2, 28, 28, 512);
-  backReluOut = backRelu(backMaxOut, layers[9].beforeRelu, 28, 28, 512);
-  free(backConvOut);
+    if(layerIDflag == 1){
+      backMaxOut = backMax(backConvOut, layers[9].blockOutput, layers[9].beforePool, 2, 28, 28, 512);
+      backReluOut = backRelu(backMaxOut, layers[9].beforeRelu, 28, 28, 512);
+      free(backConvOut);
+    }
+    else{
+      backMaxOut = backMax(dL, layers[9].blockOutput, layers[9].beforePool, 2, 28, 28, 512);
+      backReluOut = backRelu(backMaxOut, layers[9].beforeRelu, 28, 28, 512);
+    }
+
   filterIndex = 0;
   n = 0;
   backConvOut = (float*)malloc(sizeof(float)*28*28*512);
@@ -1293,14 +1315,21 @@ float* backPropLayer(float* dL, layerBlock* layers, int layerID){
   free(weights);
   free(convKernel);
   layerID--;
+  layerIDflag = 1;
   printf("layerID is now %d\n", layerID);
   }
 
 
   // Conv 4_2
   if(layerID == 8){
-  backReluOut = backRelu(backConvOut, layers[8].beforeRelu, 28, 28, 512);
-  free(backConvOut);
+    if(layerIDflag == 1){
+      backReluOut = backRelu(backConvOut, layers[8].beforeRelu, 28, 28, 512);
+      free(backConvOut);
+    }
+    else{
+      backReluOut = backRelu(dL, layers[8].beforeRelu, 28, 28, 512);
+    }
+
   filterIndex = 0;
   n = 0;
   backConvOut = (float*)malloc(sizeof(float)*28*28*512);
@@ -1328,14 +1357,21 @@ float* backPropLayer(float* dL, layerBlock* layers, int layerID){
   free(weights);
   free(convKernel);
   layerID--;
+  layerIDflag = 1;
   printf("layerID is now %d\n", layerID);
   }
 //backConv(float* dL, float* filter, int stride, int rows, int cols, int depth)
 
   // Conv 4_1
   if(layerID == 7){
-  backReluOut = backRelu(backConvOut, layers[7].beforeRelu, 28, 28, 512);
-  free(backConvOut);
+    if(layerIDflag == 1){
+      backReluOut = backRelu(backConvOut, layers[7].beforeRelu, 28, 28, 512);
+      free(backConvOut);
+    }
+    else{
+      backReluOut = backRelu(dL, layers[7].beforeRelu, 28, 28, 512);
+    }
+
   filterIndex = 0;
   n = 0;
   backConvOut = (float*)malloc(sizeof(float)*28*28*256);
@@ -1364,14 +1400,22 @@ float* backPropLayer(float* dL, layerBlock* layers, int layerID){
   free(weights);
   free(convKernel);
   layerID--;
+  layerIDflag = 1;
   printf("layerID is now %d\n", layerID);
   }
   //
   // Conv 3_3
   if(layerID == 6){
-  backMaxOut = backMax(backConvOut, layers[6].blockOutput, layers[6].beforePool, 2, 56, 56, 256);
-  backReluOut = backRelu(backMaxOut, layers[6].beforeRelu, 56, 56, 256);
-  free(backConvOut);
+    if(layerIDflag == 1){
+      backMaxOut = backMax(backConvOut, layers[6].blockOutput, layers[6].beforePool, 2, 56, 56, 256);
+      backReluOut = backRelu(backMaxOut, layers[6].beforeRelu, 56, 56, 256);
+      free(backConvOut);
+    }
+    else{
+      backMaxOut = backMax(dL, layers[6].blockOutput, layers[6].beforePool, 2, 56, 56, 256);
+      backReluOut = backRelu(backMaxOut, layers[6].beforeRelu, 56, 56, 256);
+    }
+
   filterIndex = 0;
   n = 0;
   backConvOut = (float*)malloc(sizeof(float)*56*56*256);
@@ -1400,12 +1444,19 @@ float* backPropLayer(float* dL, layerBlock* layers, int layerID){
   free(weights);
   free(convKernel);
   layerID--;
+  layerIDflag = 1;
   printf("layerID is now %d\n", layerID);
   }
   // Conv 3_2
   if(layerID == 5){
-  backReluOut = backRelu(backConvOut, layers[5].beforeRelu, 56, 56, 256);
-  free(backConvOut);
+    if(layerIDflag == 1){
+      backReluOut = backRelu(backConvOut, layers[5].beforeRelu, 56, 56, 256);
+      free(backConvOut);
+    }
+    else{
+      backReluOut = backRelu(dL, layers[5].beforeRelu, 56, 56, 256);
+    }
+
   filterIndex = 0;
   n = 0;
   backConvOut = (float*)malloc(sizeof(float)*56*56*256);
@@ -1433,13 +1484,20 @@ float* backPropLayer(float* dL, layerBlock* layers, int layerID){
   free(weights);
   free(convKernel);
   layerID--;
+  layerIDflag = 1;
   printf("layerID is now %d\n", layerID);
   }
 
   // Conv 3_1
   if(layerID == 4){
-  backReluOut = backRelu(backConvOut, layers[4].beforeRelu, 56, 56, 256);
-  free(backConvOut);
+    if(layerIDflag == 1){
+      backReluOut = backRelu(backConvOut, layers[4].beforeRelu, 56, 56, 256);
+      free(backConvOut);
+    }
+    else{
+      backReluOut = backRelu(dL, layers[4].beforeRelu, 56, 56, 256);
+    }
+
   filterIndex = 0;
   n = 0;
   backConvOut = (float*)malloc(sizeof(float)*56*56*128);
@@ -1468,14 +1526,21 @@ float* backPropLayer(float* dL, layerBlock* layers, int layerID){
   free(weights);
   free(convKernel);
   layerID--;
+  layerIDflag = 1;
   printf("layerID is now %d\n", layerID);
   }
 
   // Conv 2_2
   if(layerID == 3){
-  backMaxOut = backMax(backConvOut, layers[3].blockOutput, layers[3].beforePool, 2, 112, 112, 128);
-  backReluOut = backRelu(backMaxOut, layers[3].beforeRelu, 112, 112, 128);
-  free(backConvOut);
+    if(layerIDflag == 1){
+      backMaxOut = backMax(backConvOut, layers[3].blockOutput, layers[3].beforePool, 2, 112, 112, 128);
+      backReluOut = backRelu(backMaxOut, layers[3].beforeRelu, 112, 112, 128);
+      free(backConvOut);
+    }
+    else{
+      backMaxOut = backMax(dL, layers[3].blockOutput, layers[3].beforePool, 2, 112, 112, 128);
+      backReluOut = backRelu(backMaxOut, layers[3].beforeRelu, 112, 112, 128);
+    }
   filterIndex = 0;
   n = 0;
   backConvOut = (float*)malloc(sizeof(float)*112*112*128);
@@ -1504,14 +1569,20 @@ float* backPropLayer(float* dL, layerBlock* layers, int layerID){
   free(weights);
   free(convKernel);
   layerID--;
+  layerIDflag = 1;
   printf("layerID is now %d\n", layerID);
   }
 
   //
   // Conv 2_1
   if(layerID == 2){
-  backReluOut = backRelu(backConvOut, layers[2].beforeRelu, 112, 112, 128);
-  free(backConvOut);
+    if(layerIDflag == 1){
+      backReluOut = backRelu(backConvOut, layers[2].beforeRelu, 112, 112, 128);
+      free(backConvOut);
+    }
+    else{
+      backReluOut = backRelu(dL, layers[2].beforeRelu, 112, 112, 128);
+    }
   filterIndex = 0;
   n = 0;
   backConvOut = (float*)malloc(sizeof(float)*112*112*64);
@@ -1539,13 +1610,21 @@ float* backPropLayer(float* dL, layerBlock* layers, int layerID){
   free(weights);
   free(convKernel);
   layerID--;
+  layerIDflag = 1;
   printf("layerID is now %d\n", layerID);
   }
   // Conv 1_2
   if(layerID == 1){
-  backMaxOut = backMax(backConvOut, layers[1].blockOutput, layers[1].beforePool, 2, 224, 224, 64);
-  backReluOut = backRelu(backMaxOut, layers[1].beforeRelu, 224, 224, 64);
-  free(backConvOut);
+    if(layerIDflag == 1){
+      backMaxOut = backMax(backConvOut, layers[1].blockOutput, layers[1].beforePool, 2, 224, 224, 64);
+      backReluOut = backRelu(backMaxOut, layers[1].beforeRelu, 224, 224, 64);
+      free(backConvOut);
+    }
+    else{
+      backMaxOut = backMax(dL, layers[1].blockOutput, layers[1].beforePool, 2, 224, 224, 64);
+      backReluOut = backRelu(backMaxOut, layers[1].beforeRelu, 224, 224, 64);
+    }
+
   filterIndex = 0;
   n = 0;
   backConvOut = (float*)malloc(sizeof(float)*224*224*64);
@@ -1574,11 +1653,17 @@ float* backPropLayer(float* dL, layerBlock* layers, int layerID){
   free(weights);
   free(convKernel);
   layerID--;
+  layerIDflag = 1;
   printf("layerID is now %d\n", layerID);
   }
   // Conv 1_1
   if(layerID == 0){
-  backReluOut = backRelu(backConvOut, layers[0].beforeRelu, 224, 224, 64);
+    if(layerIDflag == 1){
+      backReluOut = backRelu(backConvOut, layers[0].beforeRelu, 224, 224, 64);
+    }
+    else{
+      backReluOut = backRelu(dL, layers[0].beforeRelu, 224, 224, 64);
+    }
   filterIndex = 0;
   n = 0;
   backConvOut = (float*)malloc(sizeof(float)*224*224*3);
@@ -1606,6 +1691,7 @@ float* backPropLayer(float* dL, layerBlock* layers, int layerID){
   free(weights);
   free(convKernel);
   layerID--;
+  layerIDflag = 1;
   printf("layerID is now %d\n", layerID);
   }
 
