@@ -184,8 +184,11 @@ float* backStyle(layerBlock* styleLayers, layerBlock*mixedLayers, int* layerIds,
   for(int i = 0; i < idSize; i++){
     // size of tensor output from specified layer
     h = mixedLayers[layerIds[i]].height;
+    printf("Height h : %d\n",h);
     w = mixedLayers[layerIds[i]].width;
+    printf("Width h : %d\n",w);
     d = mixedLayers[layerIds[i]].depth;
+    printf("Depth d : %d\n",d);
     size = h * w * d;
     backGramMix = backMult(mixedLayers[layerIds[i]].blockOutput,d, h*w, h*w, d);
     backGramStyle = backMult(styleLayers[layerIds[i]].blockOutput,d, h*w, h*w, d);
@@ -198,8 +201,10 @@ float* backStyle(layerBlock* styleLayers, layerBlock*mixedLayers, int* layerIds,
     }
 
     // sum rule for partial derivatives
+    printf("Layerids i : %d\n",layerIds[i]);
     dLTempBacked = backPropLayer(dLTemp, mixedLayers, layerIds[i]);
     // don't need dLTemp anymore
+    printf("it is not backPropLayer\n");
     free(dLTemp);
 
     // sum rule for partial derivatives
@@ -274,47 +279,59 @@ float* styleTransfer(float* contentImage, float* styleImage, int* contentIds,
       gradStyle = backStyle(styleLayers, mixedLayers, styleIds, styleIdSize, localStyle);
 
       printf("testing gradContent and gradStyle\n");
-			// for(int i = 0; i < iterations; i++){
-      //   // reinput into neural network
-      //   mixedLayers = createVGG16(mixedImage);
-			// 	printf("mixedLayers generated ");
-      //   // recalculate loss based on this
-      //   content_loss = contentLoss(contentLayers, mixedLayers, contentIds, contentIdSize);
-      //   style_loss = styleLoss(styleLayers, mixedLayers, styleIds, styleIdSize);
-      //   // weights of each loss function on gradient
-      //   localStyle = (styleWeight/style_loss);
-      //   localContent = (contentWeight/content_loss);
-      //   // indpendent gradient  calculation for each loss function w/weights
-      //   gradContent = backContent(contentLayers, mixedLayers, contentIds, contentIdSize, localContent);
-      //   gradStyle = backStyle(styleLayers, mixedLayers, styleIds, styleIdSize, localStyle);
-      //
-      //   // compute total gradient
-      //   for(int x = 0; x < (224*224*3); x++){
-      //     gradient[x] = gradStyle[x] + gradContent[x];
-      //   }
-      //   // create scaled step size/learning rate based on the gradient
-      //   scaledStep = stepSize/stdev(gradient, (224*224*3));
-      //
-      //   // update mixed image based on this (clip range of pixel values to 0-255)
-      //   for(int x = 0; x < (224*224*3); x++){
-      //     mixedImage[x] = fmod(fabsf((mixedImage[x] - gradient[x]*scaledStep)), 255);
-      //   }
-      //   // save image
-      //   // free generated gradient vectors
-      //   free(gradContent);
-      //   free(gradStyle);
-      //
-			// 	// FREE THE STRUCT
-			// 	// not sure if you need to free stuff within the struct depends on how you allocated it
-			// 	for(int i = 0; i < 13; i++){
-			// 		free(mixedLayers[i].blockOutput);
-			// 		free(mixedLayers[i].beforeRelu);
-			// 		free(mixedLayers[i].beforePool);
-			// 		free(mixedLayers[i].beforeConv);
-			// 	}
-			// 	free(mixedLayers);
-			// 	printf("Iteration %d\n done", i);
-      // }
+
+      for(int x = 0; x < (224*224*3); x++){
+        gradient[x] = gradStyle[x] + gradContent[x];
+      }
+      // create scaled step size/learning rate based on the gradient
+      scaledStep = stepSize/stdev(gradient, (224*224*3));
+
+      // update mixed image based on this (clip range of pixel values to 0-255)
+      for(int x = 0; x < (224*224*3); x++){
+        mixedImage[x] = fmod(fabsf((mixedImage[x] - gradient[x]*scaledStep)), 255);
+      }
+
+		// 	for(int i = 0; i < iterations; i++){
+    //     // reinput into neural network
+    //     mixedLayers = createVGG16(mixedImage);
+		// 		printf("mixedLayers generated ");
+    //     // recalculate loss based on this
+    //     content_loss = contentLoss(contentLayers, mixedLayers, contentIds, contentIdSize);
+    //     style_loss = styleLoss(styleLayers, mixedLayers, styleIds, styleIdSize);
+    //     // weights of each loss function on gradient
+    //     localStyle = (styleWeight/style_loss);
+    //     localContent = (contentWeight/content_loss);
+    //     // indpendent gradient  calculation for each loss function w/weights
+    //     gradContent = backContent(contentLayers, mixedLayers, contentIds, contentIdSize, localContent);
+    //     gradStyle = backStyle(styleLayers, mixedLayers, styleIds, styleIdSize, localStyle);
+    //
+    //     // compute total gradient
+    //     for(int x = 0; x < (224*224*3); x++){
+    //       gradient[x] = gradStyle[x] + gradContent[x];
+    //     }
+    //     // create scaled step size/learning rate based on the gradient
+    //     scaledStep = stepSize/stdev(gradient, (224*224*3));
+    //
+    //     // update mixed image based on this (clip range of pixel values to 0-255)
+    //     for(int x = 0; x < (224*224*3); x++){
+    //       mixedImage[x] = fmod(fabsf((mixedImage[x] - gradient[x]*scaledStep)), 255);
+    //     }
+    //     // save image
+    //     // free generated gradient vectors
+    //     free(gradContent);
+    //     free(gradStyle);
+    //
+		// 		// FREE THE STRUCT
+		// 		// not sure if you need to free stuff within the struct depends on how you allocated it
+		// 		for(int i = 0; i < 13; i++){
+		// 			free(mixedLayers[i].blockOutput);
+		// 			free(mixedLayers[i].beforeRelu);
+		// 			free(mixedLayers[i].beforePool);
+		// 			free(mixedLayers[i].beforeConv);
+		// 		}
+		// 		free(mixedLayers);
+		// 		printf("Iteration %d\n done", i);
+    //   }
 			// return image
       return mixedImage;
     }
@@ -324,14 +341,16 @@ int main(){
 	float* contentImage;
 	float* styleImage;
 	int contentIds[1] = {3};
-	int styleIds[13] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
+	// int styleIds[13] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
+  int styleIds[4] = {0, 1, 2, 3};
   printf("creating contentImage\n");
 	contentImage = preprocess("content.txt");
   printf("creating style image\n");
 	styleImage = preprocess("style.txt");
   printf("doing style transfer\n");
+  // change back to 13
 	afterTenIterations = styleTransfer(contentImage, styleImage, contentIds,
-	    1, styleIds, 13, 1.5, 10.0, 0.3, 10, 10.0);
+	    1, styleIds, 4, 1.5, 10.0, 0.3, 10, 10.0);
   printf("finished style transfer\n");
 	FILE* imageAfter;
 	if((imageAfter = fopen("result.txt", "w")) == NULL){
@@ -339,7 +358,7 @@ int main(){
 	}
 
 	int idxr, idxc;
-	for(idxr = 0; idxr < (244*3); idxr++){
+	for(idxr = 0; idxr < (224*3); idxr++){
 		for(idxc = 0; idxc < 224; idxc++){
 			fprintf(imageAfter, "%f", afterTenIterations[idxr*224+idxc]);
 		}
