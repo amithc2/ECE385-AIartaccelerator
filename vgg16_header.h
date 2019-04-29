@@ -1690,9 +1690,8 @@ float* backPropLayer(float* dL, layerBlock* layers, int layerID){
   free(weights[1]);
   free(weights);
   free(convKernel);
-  layerID--;
   layerIDflag = 1;
-  printf("layerID is now %d\n", layerID);
+  printf("backProp done");
   }
 
   return backConvOut;
