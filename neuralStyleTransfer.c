@@ -358,11 +358,8 @@ int main(){
 	}
 
 	int idxr, idxc;
-	for(idxr = 0; idxr < (224*3); idxr++){
-		for(idxc = 0; idxc < 224; idxc++){
-			fprintf(imageAfter, "%f", afterTenIterations[idxr*224+idxc]);
-		}
-		fprintf(imageAfter, "\n");
+	for(idxr = 0; idxr < (224*224*3); idxr++){
+		fprintf(imageAfter, "%f\n", afterTenIterations[idxr]);
 	}
 
 	fclose(imageAfter);
